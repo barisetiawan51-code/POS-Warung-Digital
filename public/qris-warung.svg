@@ -1,0 +1,78 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 480" width="100%" height="100%">
+  <!-- Card Background -->
+  <rect width="400" height="480" rx="16" fill="#ffffff" stroke="#e2e8f0" stroke-width="2"/>
+  
+  <!-- QRIS Header Banner -->
+  <rect x="0" y="0" width="400" height="70" rx="16" fill="#dc2626"/>
+  <rect x="0" y="54" width="400" height="16" fill="#dc2626"/>
+  <text x="200" y="44" font-family="system-ui, -apple-system, sans-serif" font-size="28" font-weight="900" fill="#ffffff" text-anchor="middle" letter-spacing="2">QRIS</text>
+  
+  <!-- Subtitle -->
+  <text x="200" y="95" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="700" fill="#172b4d" text-anchor="middle">PEMBAYARAN DIGITAL NASIONAL</text>
+  
+  <!-- Merchant Info -->
+  <rect x="25" y="110" width="350" height="52" rx="8" fill="#f8fafc" stroke="#e2e8f0"/>
+  <text x="200" y="132" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="800" fill="#172b4d" text-anchor="middle">WARUNG BAROKAH REZEKI</text>
+  <text x="200" y="149" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="500" fill="#64748b" text-anchor="middle">NMID : ID1020261017001</text>
+  
+  <!-- QR Code Frame -->
+  <rect x="75" y="180" width="250" height="250" rx="8" fill="#ffffff" stroke="#172b4d" stroke-width="4"/>
+  
+  <!-- Corner Position Squares (Top Left) -->
+  <rect x="95" y="200" width="50" height="50" fill="#172b4d"/>
+  <rect x="105" y="210" width="30" height="30" fill="#ffffff"/>
+  <rect x="113" y="218" width="14" height="14" fill="#172b4d"/>
+  
+  <!-- Corner Position Squares (Top Right) -->
+  <rect x="255" y="200" width="50" height="50" fill="#172b4d"/>
+  <rect x="265" y="210" width="30" height="30" fill="#ffffff"/>
+  <rect x="273" y="218" width="14" height="14" fill="#172b4d"/>
+  
+  <!-- Corner Position Squares (Bottom Left) -->
+  <rect x="95" y="360" width="50" height="50" fill="#172b4d"/>
+  <rect x="105" y="370" width="30" height="30" fill="#ffffff"/>
+  <rect x="113" y="378" width="14" height="14" fill="#172b4d"/>
+  
+  <!-- QR Modules / Data Pattern Mockup -->
+  <!-- Row 1 -->
+  <rect x="160" y="200" width="10" height="10" fill="#172b4d"/>
+  <rect x="180" y="200" width="20" height="10" fill="#172b4d"/>
+  <rect x="210" y="200" width="10" height="10" fill="#172b4d"/>
+  <rect x="230" y="200" width="10" height="10" fill="#172b4d"/>
+  
+  <!-- Row 2 -->
+  <rect x="150" y="215" width="20" height="10" fill="#172b4d"/>
+  <rect x="180" y="215" width="10" height="10" fill="#172b4d"/>
+  <rect x="200" y="215" width="20" height="10" fill="#172b4d"/>
+  <rect x="230" y="215" width="15" height="10" fill="#172b4d"/>
+  
+  <!-- Center Blocks -->
+  <rect x="160" y="240" width="80" height="80" rx="6" fill="#172b4d"/>
+  <rect x="175" y="255" width="50" height="50" rx="4" fill="#ffffff"/>
+  <!-- QRIS center badge -->
+  <text x="200" y="286" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="900" fill="#dc2626" text-anchor="middle">QRIS</text>
+  
+  <!-- Other Modules -->
+  <rect x="95" y="265" width="15" height="25" fill="#172b4d"/>
+  <rect x="120" y="265" width="20" height="15" fill="#172b4d"/>
+  <rect x="105" y="300" width="30" height="15" fill="#172b4d"/>
+  <rect x="95" y="325" width="15" height="20" fill="#172b4d"/>
+  <rect x="120" y="325" width="20" height="15" fill="#172b4d"/>
+  
+  <rect x="255" y="265" width="25" height="15" fill="#172b4d"/>
+  <rect x="290" y="265" width="15" height="25" fill="#172b4d"/>
+  <rect x="265" y="295" width="30" height="15" fill="#172b4d"/>
+  <rect x="255" y="325" width="20" height="15" fill="#172b4d"/>
+  <rect x="285" y="325" width="20" height="20" fill="#172b4d"/>
+  
+  <rect x="160" y="340" width="25" height="15" fill="#172b4d"/>
+  <rect x="195" y="340" width="20" height="20" fill="#172b4d"/>
+  <rect x="225" y="340" width="15" height="15" fill="#172b4d"/>
+  <rect x="160" y="370" width="30" height="15" fill="#172b4d"/>
+  <rect x="200" y="370" width="40" height="15" fill="#172b4d"/>
+  <rect x="175" y="395" width="35" height="15" fill="#172b4d"/>
+  <rect x="220" y="395" width="20" height="15" fill="#172b4d"/>
+  
+  <!-- Supported Wallets Text -->
+  <text x="200" y="455" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="600" fill="#64748b" text-anchor="middle">BCA • Mandiri • BRI • BNI • GoPay • OVO • Dana • ShopeePay</text>
+</svg>
