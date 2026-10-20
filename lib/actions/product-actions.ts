@@ -1,6 +1,9 @@
+"use server";
+
 import { createProductServer as createProductImpl,
    updateProductServer as updateProductImpl,
    deleteProductServer as deleteProductImpl,
+   setProductActiveServer as setProductActiveImpl,
 } from "@/lib/actions/product-server";
 import type { Product } from "@/lib/types/pos";
 
@@ -47,5 +50,14 @@ export async function deleteProductAction(id: string): Promise<{ success: boolea
    } catch (e: unknown) {
      const err = e as Error;
      return { success: false, error: err.message || "Gagal menghapus produk." };
+   }
+}
+
+export async function setProductActiveAction(id: string, isActive: boolean): Promise<{ success: boolean; error?: string }> {
+   try {
+     return await setProductActiveImpl(id, isActive);
+   } catch (e: unknown) {
+     const err = e as Error;
+     return { success: false, error: err.message || "Gagal memperbarui status produk." };
    }
 }

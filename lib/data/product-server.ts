@@ -1,4 +1,4 @@
-﻿"use server";
+"use server";
 
 import { createClient } from "@/lib/supabase/server";
 import type { Product } from "@/lib/types/pos";
@@ -21,4 +21,19 @@ export async function fetchProductsServer(): Promise<Product[] | null> {
     stock: Number(row.stock), minimum_stock: Number(row.minimum_stock), is_active: row.is_active,
     created_at: row.created_at, updated_at: row.updated_at,
   }));
+}
+
+export async function fetchProductByIdServer(id: string): Promise<Product | null> {
+  const client = await createClient();
+  const { data: auth } = await client.auth.getUser();
+  if (!auth.user) return null;
+  const { data, error } = await client.from("products").select("*, categories(name)").eq("id", id).eq("owner_id", auth.user.id).maybeSingle();
+  if (error || !data) return null;
+  const row = data as unknown as ProductRow;
+  return {
+    id: row.id, owner_id: row.owner_id, category_id: row.category_id, category_name: row.categories?.name,
+    sku: row.sku, name: row.name, unit: row.unit, cost_price: Number(row.cost_price), selling_price: Number(row.selling_price),
+    stock: Number(row.stock), minimum_stock: Number(row.minimum_stock), is_active: row.is_active,
+    created_at: row.created_at, updated_at: row.updated_at,
+  };
 }

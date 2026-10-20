@@ -241,6 +241,7 @@ export function SettingsView({ initialSettings }: SettingsViewProps) {
                 <input
                   type="number"
                   min="1"
+                  step="1"
                   value={defaultMinStock}
                   onChange={(e) => setDefaultMinStock(Number(e.target.value))}
                   className="w-full rounded-lg border border-border bg-background px-3 py-2 text-xs text-foreground focus:border-primary focus:outline-hidden"

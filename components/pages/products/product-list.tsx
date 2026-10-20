@@ -17,7 +17,7 @@ import {
 import type { Product } from "@/lib/types/pos";
 import { useProducts, useCategories, useStoreSettings } from "@/lib/hooks/useRealtime";
 import { formatRupiah } from "@/lib/format";
-import { updateProduct, deleteProduct } from "@/lib/data/store";
+import { deleteProductAction, setProductActiveAction } from "@/lib/actions/product-actions";
 import { AppShell } from "@/components/layouts/app-shell";
 import { CustomSelect } from "@/components/ui/custom-select";
 import { cn } from "@/lib/utils";
@@ -52,7 +52,7 @@ export function ProductList() {
 
     try {
       const newStatus = !product.is_active;
-      const res = await updateProduct(product.id, { is_active: newStatus });
+      const res = await setProductActiveAction(product.id, newStatus);
 
       if (!res.success) {
         setFeedback({
@@ -83,7 +83,7 @@ export function ProductList() {
     setFeedback(null);
 
     try {
-      const res = await deleteProduct(deletingProduct.id);
+      const res = await deleteProductAction(deletingProduct.id);
       if (res.success) {
         // Sync event refreshes UI automatically
         setFeedback({

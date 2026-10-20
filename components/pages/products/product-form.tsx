@@ -266,6 +266,7 @@ export function ProductForm({ product, categories }: ProductFormProps) {
                   type="number"
                   required
                   min="0"
+                  step="1"
                   value={stock}
                   onChange={(e) => setStock(Number(e.target.value))}
                   className="w-full rounded-lg border border-border bg-background px-3 py-2 text-xs text-foreground focus:border-primary focus:outline-hidden"
@@ -280,6 +281,7 @@ export function ProductForm({ product, categories }: ProductFormProps) {
                   type="number"
                   required
                   min="0"
+                  step="1"
                   value={minimumStock}
                   onChange={(e) => setMinimumStock(Number(e.target.value))}
                   className="w-full rounded-lg border border-border bg-background px-3 py-2 text-xs text-foreground focus:border-primary focus:outline-hidden"

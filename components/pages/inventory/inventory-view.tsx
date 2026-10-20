@@ -570,6 +570,7 @@ export function InventoryView({ storeName }: InventoryViewProps) {
                   <input
                     type="number"
                     min="1"
+                    step="1"
                     required
                     placeholder="Contoh: 12"
                     value={qtyChange}

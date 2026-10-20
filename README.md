@@ -82,6 +82,11 @@ File migrasi database tersedia di direktori `supabase/migrations/`:
    - Fungsi PostgreSQL RPC `process_refund` (pembatalan transaksi aman dan pemulihan stok).
 3. `supabase/migrations/20261017000003_seed_data.sql`
    - Data katalog awal sembako warung Indonesia (Bimoli, Telur, Aqua, Lifebuoy, Kapal Api, Beras Ramos, Gulaku, Indomie).
+4. `supabase/migrations/20261017000004_categories_prefix.sql`
+   - Kolom `prefix` pada tabel `categories` untuk pembuatan SKU otomatis.
+5. `supabase/migrations/20261017000005_integer_stock.sql`
+   - Stok, `minimum_stock`, kuantitas jual, dan mutasi stok diubah dari `NUMERIC(14,3)` ke `INTEGER` (nilai lama dibulatkan). Warung menghitung stok dalam satuan utuh.
+   - Menulis ulang RPC `process_checkout`, `process_refund`, dan `seed_warungku_demo_data` agar memakai tipe INTEGER.
 
 ### Cara Menjalankan Migrasi ke Supabase:
 

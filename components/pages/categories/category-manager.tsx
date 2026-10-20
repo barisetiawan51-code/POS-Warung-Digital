@@ -14,7 +14,11 @@ import {
 } from "react-icons/lu";
 import type { Category } from "@/lib/types/pos";
 import { useCategories, useStoreSettings } from "@/lib/hooks/useRealtime";
-import { createCategory, updateCategory, deleteCategory } from "@/lib/data/store";
+import {
+  createCategoryAction,
+  updateCategoryAction,
+  deleteCategoryAction,
+} from "@/lib/actions/category-actions";
 import { dispatchSyncEvent } from "@/lib/data/supabase-service";
 import { AppShell } from "@/components/layouts/app-shell";
 import { cn } from "@/lib/utils";
@@ -56,7 +60,7 @@ export function CategoryManager() {
     e.preventDefault();
     setFeedback(null);
 
-    const res = await createCategory(newCatName, newCatPrefix);
+    const res = await createCategoryAction(newCatName, newCatPrefix);
     if (!res.success) {
       setFeedback({
         type: "error",
@@ -92,7 +96,7 @@ export function CategoryManager() {
 
   const handleSaveEdit = async (id: string) => {
     setFeedback(null);
-    const res = await updateCategory(id, editingName, editingPrefix);
+    const res = await updateCategoryAction(id, editingName, editingPrefix);
     if (!res.success) {
       setFeedback({
         type: "error",
@@ -116,7 +120,7 @@ export function CategoryManager() {
     setFeedback(null);
 
     try {
-      const res = await deleteCategory(deletingCategory.id);
+      const res = await deleteCategoryAction(deletingCategory.id);
       if (res.success) {
         // Sync event refreshes UI automatically
         setFeedback({

@@ -19,7 +19,7 @@ function mapProduct(row: ProductRow): Product {
 
 async function generateSequentialSku(prefix: string, client: Awaited<ReturnType<typeof createClient>>, ownerId: string): Promise<string> {
   const { data: existing } = await client.from("products").select("sku").eq("owner_id", ownerId).like("sku", `${prefix}-%`);
-  const skus = (existing || []).map((p: any) => p.sku);
+  const skus = (existing || []).map((p: { sku: string }) => p.sku);
   let seq = 0;
   let sku: string;
   do {
@@ -123,5 +123,19 @@ export async function deleteProductServer(id: string) {
     .maybeSingle();
 
   if (error || !data) throw new Error(error?.message ?? "Produk gagal dihapus.");
+  return { success: true };
+}
+
+export async function setProductActiveServer(id: string, isActive: boolean) {
+  const { client, ownerId } = await authorizedClient();
+  const { data, error } = await client
+    .from("products")
+    .update({ is_active: isActive, updated_at: new Date().toISOString() })
+    .eq("id", id)
+    .eq("owner_id", ownerId)
+    .select("id")
+    .maybeSingle();
+
+  if (error || !data) throw new Error(error?.message ?? "Produk tidak ditemukan.");
   return { success: true };
 }

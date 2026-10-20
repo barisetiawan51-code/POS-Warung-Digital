@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { getProductById, getCategories } from "@/lib/data/store";
+import { fetchCategoriesServer } from "@/lib/data/category-server";
+import { fetchProductByIdServer } from "@/lib/data/product-server";
 import { ProductForm } from "@/components/pages/products/product-form";
 
 export const metadata: Metadata = {
@@ -17,13 +18,13 @@ export default async function EditProductPage({
 }: EditProductPageProps) {
   const { id } = await params;
   const [product, categories] = await Promise.all([
-    getProductById(id),
-    getCategories(),
+    fetchProductByIdServer(id),
+    fetchCategoriesServer(),
   ]);
 
   if (!product) {
     notFound();
   }
 
-  return <ProductForm product={product} categories={categories} />;
+  return <ProductForm product={product} categories={categories ?? []} />;
 }
