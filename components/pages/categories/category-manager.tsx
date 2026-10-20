@@ -350,11 +350,11 @@ export function CategoryManager() {
                           </div>
                         </div>
                       ) : (
-                        <div className="flex items-center gap-2">
+                        <div className="flex flex-col gap-0.5">
                           <span>{cat.name}</span>
                           {cat.prefix && (
-                            <span className="text-xs text-muted-foreground">
-                              ({cat.prefix})
+                            <span className="font-mono text-[11px] font-medium tracking-wider text-muted-foreground">
+                              SKU: {cat.prefix}
                             </span>
                           )}
                         </div>

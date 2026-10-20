@@ -157,23 +157,32 @@ export async function getActiveOwnerId(): Promise<string> {
 
 export async function fetchProductsSupabase(): Promise<Product[] | null> {
   const client = getClient();
-  if (!client) return null;
+  if (!client) {
+    console.error("[PRODUCTS FETCH ERROR] Supabase client is null");
+    return null;
+  }
 
   try {
     const ownerId = await getActiveOwnerId();
-    const { data, error } = await client
-      .from("products")
-      .select("*, categories(name)")
-      .eq("owner_id", ownerId)
-      .order("name", { ascending: true });
+    const [{ data, error }, { data: categories }] = await Promise.all([
+      client
+        .from("products")
+        .select("id, owner_id, category_id, sku, name, unit, cost_price, selling_price, stock, minimum_stock, is_active, created_at, updated_at")
+        .eq("owner_id", ownerId)
+        .order("name", { ascending: true }),
+      client.from("categories").select("id, name").eq("owner_id", ownerId),
+    ]);
 
     if (error || !data) return null;
+    const categoryNames = new Map(
+      (categories ?? []).map((category) => [category.id, category.name]),
+    );
     const rows = data as unknown as ProductRow[];
     return rows.map((row) => ({
       id: row.id,
       owner_id: row.owner_id,
       category_id: row.category_id,
-      category_name: row.categories?.name ?? undefined,
+      category_name: row.category_id ? categoryNames.get(row.category_id) : undefined,
       sku: row.sku,
       name: row.name,
       unit: row.unit,
@@ -185,7 +194,8 @@ export async function fetchProductsSupabase(): Promise<Product[] | null> {
       created_at: row.created_at,
       updated_at: row.updated_at,
     }));
-  } catch {
+  } catch (error) {
+    console.error("[PRODUCTS FETCH EXCEPTION]", error);
     return null;
   }
 }

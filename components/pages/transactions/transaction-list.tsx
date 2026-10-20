@@ -118,7 +118,7 @@ export function TransactionList({ initialOrders }: TransactionListProps) {
       <div className="space-y-5">
         {/* Filter Controls Card Atas */}
         <div className="bg-card flex flex-col gap-3 rounded-2xl border border-border/80 p-4 shadow-xs sm:flex-row sm:items-center sm:justify-between">
-          <div className="relative max-w-md flex-1">
+          <div className="relative w-full flex-1 sm:max-w-md">
             <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-muted-foreground/70">
               <LuSearch className="size-4" />
             </div>
@@ -131,7 +131,7 @@ export function TransactionList({ initialOrders }: TransactionListProps) {
             />
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center sm:gap-3">
             <CustomSelect
               id="method-filter"
               value={methodFilter}

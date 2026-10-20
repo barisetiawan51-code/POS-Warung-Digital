@@ -132,7 +132,7 @@ export function TransactionDetail({
         </div>
 
         {message && (
-          <div className="flex items-center gap-2 rounded-lg border border-emerald-500/20 bg-emerald-500/10 p-3 text-xs text-emerald-600 dark:text-emerald-400">
+          <div className="flex items-center gap-2 rounded-lg border border-primary/20 bg-primary/10 p-3 text-xs text-primary">
             <LuCircleCheck className="size-4 shrink-0" />
             <span>{message}</span>
           </div>
@@ -165,15 +165,9 @@ export function TransactionDetail({
                <span
                  className={cn(
                    "inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold uppercase",
-                   isCancelled
-                     ? "bg-destructive/15 text-destructive"
-                     : isRefunded
-                       ? "bg-orange-500/15 text-orange-600 dark:text-orange-400"
-                       : isPaid
-                         ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400"
-                         : isPending
-                           ? "bg-amber-500/15 text-amber-600 dark:text-amber-400"
-                           : "bg-muted/15 text-muted-foreground",
+                    isCancelled
+                      ? "bg-destructive/15 text-destructive"
+                      : "bg-primary/15 text-primary",
                  )}
                >
                  {isPaid ? (
@@ -206,7 +200,7 @@ export function TransactionDetail({
                   type="button"
                   onClick={handleVerify}
                   disabled={isSubmitting}
-                  className="mt-2 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-emerald-700"
+                  className="mt-2 rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-primary-foreground hover:bg-primary/90"
                 >
                   Verifikasi & Tandai Lunas
                 </button>
@@ -297,7 +291,7 @@ export function TransactionDetail({
       {/* REFUND CONFIRMATION MODAL */}
       {isRefundModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4">
-          <div className="bg-card w-[calc(100%-2rem)] max-w-[480px] rounded-2xl border border-border/80 shadow-2xl overflow-hidden">
+          <div className="bg-card bg-white dark:bg-slate-900 w-[calc(100%-2rem)] max-w-[480px] rounded-2xl border border-border/80 shadow-2xl overflow-hidden">
             {/* Header Modal */}
             <div className="flex items-center justify-between border-b border-border/80 px-6 py-4">
               <div className="flex items-center gap-2.5">

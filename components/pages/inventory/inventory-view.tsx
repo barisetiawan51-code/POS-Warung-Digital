@@ -29,9 +29,9 @@ export function InventoryView({ storeName }: InventoryViewProps) {
   const products = productsData ?? [];
   const movements = movementsData ?? [];
   const categories = categoriesData ?? [];
-  const [activeTab, setActiveTab] = useState<"inventory" | "ledger">(
-    "inventory",
-  );
+  const [activeTab, setActiveTab] = useState<
+    "inventory" | "low-stock" | "ledger"
+  >("inventory");
 
   // Modal Penyesuaian / Restock Stok
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -53,7 +53,10 @@ export function InventoryView({ storeName }: InventoryViewProps) {
     (p) => p.stock <= p.minimum_stock,
   ).length;
 
-  const filteredProducts = products;
+  const filteredProducts =
+    activeTab === "low-stock"
+      ? products.filter((product) => product.stock <= product.minimum_stock)
+      : products;
 
   // Buka Modal untuk Stok Masuk (Restock)
   const handleOpenRestock = (prod?: Product) => {
@@ -164,8 +167,8 @@ export function InventoryView({ storeName }: InventoryViewProps) {
         </div>
 
         {/* Tab Navigasi Underline Style */}
-        <div className="border-b border-border">
-          <div className="flex items-center gap-6">
+        <div className="overflow-x-auto border-b border-border">
+          <div className="flex min-w-max items-center gap-6">
             <button
               type="button"
               onClick={() => setActiveTab("inventory")}
@@ -177,11 +180,19 @@ export function InventoryView({ storeName }: InventoryViewProps) {
               )}
             >
               <span>Status Stok Barang ({products.length})</span>
-              {lowStockCount > 0 && (
-                <span className="rounded-full bg-rose-50 px-2 py-0.5 text-[10px] font-bold text-rose-600 dark:bg-rose-950/40 dark:text-rose-400">
-                  {lowStockCount} Menipis
-                </span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setActiveTab("low-stock")}
+              className={cn(
+                "relative flex items-center gap-2 pb-3.5 text-xs font-semibold transition-colors",
+                activeTab === "low-stock"
+                  ? "border-b-2 border-amber-500 font-bold text-amber-600 dark:text-amber-400"
+                  : "text-muted-foreground hover:text-foreground",
               )}
+            >
+              <span>Stok Menipis ({lowStockCount})</span>
             </button>
 
             <button
@@ -200,18 +211,18 @@ export function InventoryView({ storeName }: InventoryViewProps) {
         </div>
 
         {/* TAB 1: Status Stok Barang */}
-        {activeTab === "inventory" && (
+        {(activeTab === "inventory" || activeTab === "low-stock") && (
           <div className="bg-card overflow-hidden rounded-2xl border border-border/80 shadow-xs">
             <div className="overflow-x-auto">
               <table className="w-full min-w-[760px] text-left text-xs">
                 <thead className="border-b border-border/80 bg-muted/30 text-[11px] font-bold tracking-wider text-muted-foreground uppercase">
                   <tr>
-                    <th className="py-4 pl-6 pr-4">SKU / Nama Produk</th>
+                    <th className="py-4 pl-6 pr-4">Nama Produk / SKU</th>
                     <th className="px-4 py-4">Kategori</th>
                     <th className="px-4 py-4">Stok Saat Ini</th>
                     <th className="px-4 py-4">Batas Minimum</th>
                     <th className="px-4 py-4 text-center">Kondisi</th>
-                    <th className="py-4 pr-6 pl-4 text-right">Aksi Cepat</th>
+                    <th className="py-4 pr-6 pl-4 text-center">Aksi Cepat</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border/60">
@@ -309,7 +320,7 @@ export function InventoryView({ storeName }: InventoryViewProps) {
                               className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-300 bg-emerald-50/30 px-2.5 py-1 text-xs font-semibold text-emerald-600 shadow-2xs transition-colors hover:bg-emerald-100/60 dark:border-emerald-800 dark:bg-emerald-950/20 dark:text-emerald-400"
                             >
                               <LuCirclePlus className="size-3.5" />
-                              <span>+ Restock</span>
+                              <span>Restock</span>
                             </button>
                             <button
                               type="button"

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useEffect, useState, useMemo } from "react";
 import Image from "next/image";
 import {
   LuSearch,
@@ -45,6 +45,19 @@ export function CashierView() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [cart, setCart] = useState<CartItem[]>([]);
+
+  useEffect(() => {
+    if (loadingProducts) return;
+
+    setCart((currentCart) =>
+      currentCart
+        .map((item) => {
+          const latestProduct = products.find((product) => product.id === item.product.id);
+          return latestProduct ? { ...item, product: latestProduct } : null;
+        })
+        .filter((item): item is CartItem => item !== null),
+    );
+  }, [loadingProducts, products]);
 
   // Checkout modal states
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
@@ -150,6 +163,20 @@ export function CashierView() {
   const handleConfirmCheckout = async () => {
     setCheckoutError(null);
 
+    const invalidCartItems = cart.filter(
+      (item) => !products.some((product) => product.id === item.product.id),
+    );
+    if (invalidCartItems.length > 0) {
+      setCart((currentCart) =>
+        currentCart.filter(
+          (item) => !invalidCartItems.some((invalid) => invalid.product.id === item.product.id),
+        ),
+      );
+      setIsCheckoutOpen(false);
+      setCheckoutError("Ada produk yang sudah tidak aktif. Keranjang telah diperbarui, silakan pilih produk kembali.");
+      return;
+    }
+
     if (paymentMethod === "cash" && !cashCheck.isSufficient) {
       setCheckoutError(
         `Uang tunai kurang Rp ${new Intl.NumberFormat("id-ID").format(
@@ -215,11 +242,11 @@ export function CashierView() {
       breadcrumb={`${settings.store_name || ""} / Kasir`}
       lowStockCount={products.filter((p) => p.stock <= p.minimum_stock).length}
     >
-      <div className="grid grid-cols-1 gap-6 xl:grid-cols-12">
+      <div className="grid grid-cols-1 gap-4 sm:gap-6 xl:grid-cols-12">
         {/* Left Column: Catalog & Search (7 cols on XL) */}
-        <div className="space-y-4 xl:col-span-7">
+        <div className="space-y-3 sm:space-y-4 xl:col-span-7">
           {/* Search bar & Category filter */}
-          <div className="bg-card space-y-3 rounded-xl border border-border p-4 shadow-xs">
+          <div className="bg-card space-y-2.5 rounded-xl border border-border p-3 sm:space-y-3 sm:p-4 shadow-xs">
             <div className="relative">
               <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-muted-foreground">
                 <LuSearch className="size-4.5" />
@@ -228,43 +255,48 @@ export function CashierView() {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Cari nama produk atau SKU/barcode..."
+                placeholder="Cari nama produk..."
                 className="w-full rounded-lg border border-border bg-background py-2.5 pr-4 pl-10 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-1 focus:ring-primary focus:outline-hidden"
               />
             </div>
 
-            {/* Category pills */}
-            <div className="flex gap-2 overflow-x-auto pb-1 text-xs">
-              <button
-                onClick={() => setSelectedCategory("all")}
-                className={cn(
-                  "shrink-0 rounded-lg px-3.5 py-1.5 font-medium transition-colors",
-                  selectedCategory === "all"
-                    ? "bg-primary text-white"
-                    : "bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground",
-                )}
-              >
-                Semua Kategori
-              </button>
-              {categories.map((cat) => (
+            <div className="relative">
+              <div className="pointer-events-none absolute top-0 right-0 z-10 h-full w-8 bg-gradient-to-l from-card to-transparent" />
+              <div className="scrollbar-thin flex snap-x snap-mandatory gap-2 overflow-x-auto pb-2 pr-8 text-xs">
                 <button
-                  key={cat.id}
-                  onClick={() => setSelectedCategory(cat.id)}
+                  onClick={() => setSelectedCategory("all")}
                   className={cn(
-                    "shrink-0 rounded-lg px-3.5 py-1.5 font-medium transition-colors",
-                    selectedCategory === cat.id
+                    "shrink-0 snap-start rounded-lg px-3.5 py-2.5 font-medium transition-colors",
+                    selectedCategory === "all"
                       ? "bg-primary text-white"
                       : "bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground",
                   )}
                 >
-                  {cat.name}
+                  Semua Kategori <span className="ml-1 opacity-75">({products.length})</span>
                 </button>
-              ))}
+                {categories.map((cat) => {
+                  const productCount = products.filter((product) => product.category_id === cat.id).length;
+                  return (
+                    <button
+                      key={cat.id}
+                      onClick={() => setSelectedCategory(cat.id)}
+                      className={cn(
+                        "shrink-0 snap-start rounded-lg border px-3.5 py-2.5 font-medium transition-colors",
+                        selectedCategory === cat.id
+                          ? "border-primary bg-primary text-white"
+                          : "border-border bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground",
+                      )}
+                    >
+                      {cat.name} <span className="ml-1 opacity-75">({productCount})</span>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           </div>
 
           {/* Product Grid */}
-          <div className="grid grid-cols-2 gap-3.5 sm:grid-cols-3">
+          <div className="grid grid-cols-2 gap-2.5 sm:gap-3.5 sm:grid-cols-3">
             {filteredProducts.map((prod) => {
               const isOutOfStock = prod.stock <= 0;
               const isLow = prod.stock <= prod.minimum_stock && !isOutOfStock;
@@ -273,7 +305,7 @@ export function CashierView() {
                 <div
                   key={prod.id}
                   className={cn(
-                    "bg-card flex flex-col justify-between rounded-xl border border-border p-3.5 shadow-xs transition-shadow hover:shadow-sm",
+                    "bg-card flex flex-col justify-between rounded-xl border border-border p-2.5 transition-shadow hover:shadow-sm sm:p-3.5",
                     isOutOfStock && "opacity-60",
                   )}
                 >
@@ -294,12 +326,12 @@ export function CashierView() {
                       </span>
                     </div>
 
-                    <h4 className="mt-2 line-clamp-2 text-xs leading-tight font-bold text-foreground">
+                    <h4 className="mt-1.5 line-clamp-2 text-[11px] leading-tight font-bold text-foreground sm:mt-2 sm:text-xs">
                       {prod.name}
                     </h4>
                   </div>
 
-                  <div className="mt-3 flex items-center justify-between border-t border-border/40 pt-2">
+                  <div className="mt-2 flex items-center justify-between border-t border-border/40 pt-2 sm:mt-3">
                     <span className="text-xs font-bold text-primary">
                       {formatRupiah(prod.selling_price)}
                     </span>
@@ -308,7 +340,7 @@ export function CashierView() {
                       type="button"
                       disabled={isOutOfStock}
                       onClick={() => addToCart(prod)}
-                      className="flex size-7.5 items-center justify-center rounded-lg bg-primary text-white transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-40"
+                      className="flex size-7 items-center justify-center rounded-lg bg-primary text-white transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-40 sm:size-7.5"
                       title={
                         isOutOfStock ? "Stok habis" : "Tambah ke keranjang"
                       }
@@ -335,7 +367,7 @@ export function CashierView() {
               {/* Cart Header */}
               <div className="flex items-center justify-between border-b border-border pb-3.5">
                 <div className="flex items-center gap-2">
-                  <div className="flex size-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                  <div className="flex size-8 items-center justify-center rounded-xl bg-primary/10 text-primary">
                     <LuShoppingCart className="size-4" />
                   </div>
                   <div>
@@ -634,7 +666,7 @@ export function CashierView() {
                 <div className="rounded-lg bg-background p-2.5 shadow-xs">
                   <div className="mx-auto flex w-full max-w-[210px] flex-col items-center justify-center overflow-hidden rounded-lg border border-border bg-white p-2">
                     <Image
-                      src={settings.qris_image_url || "/qris-warung.svg"}
+                      src={settings.qris_image_url || "/images/qris-warung.svg"}
                       alt={`Barcode QRIS ${settings.store_name || "Warung"}`}
                       width={200}
                       height={240}

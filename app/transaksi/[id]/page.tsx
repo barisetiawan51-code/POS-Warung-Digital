@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { getOrderById } from "@/lib/data/store";
+import { fetchOrderServer } from "@/lib/data/supabase-server-service";
 import { TransactionDetail } from "@/components/pages/transactions/transaction-detail";
 
 export const metadata: Metadata = {
@@ -16,7 +16,7 @@ export default async function TransactionDetailPage({
   params,
 }: TransactionDetailPageProps) {
   const { id } = await params;
-  const order = await getOrderById(id);
+  const order = await fetchOrderServer(id);
 
   if (!order) {
     notFound();

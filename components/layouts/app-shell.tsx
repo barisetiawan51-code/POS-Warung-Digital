@@ -87,6 +87,8 @@ export function AppShell({
     },
   ];
 
+  const primaryNavItems = navItems.filter((item) => item.href !== "/pengaturan");
+
   const handleLogout = async () => {
     // Clear demo cookie
     document.cookie = "warungku_demo_auth=; path=/; max-age=0";
@@ -125,7 +127,7 @@ export function AppShell({
 
           {/* Navigation Items */}
           <nav className="mt-4 space-y-1 px-3">
-            {navItems.map((item) => {
+            {primaryNavItems.map((item) => {
               const Icon = item.icon;
               const isActive =
                 item.href === "/dashboard"
@@ -156,11 +158,11 @@ export function AppShell({
         {/* Sidebar Footer */}
         <div className="space-y-1.5 border-t border-sidebar-border/40 p-4">
           <Link
-            href="/kasir"
+            href="/pengaturan"
             className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-sidebar-muted transition-colors hover:bg-white/10 hover:text-white"
           >
-            <LuStore className="size-4 shrink-0" />
-            <span>Moda Operasional Kasir</span>
+            <LuSettings className="size-4 shrink-0" />
+            <span>Pengaturan Warung</span>
           </Link>
           <button
             onClick={handleLogout}
@@ -183,7 +185,7 @@ export function AppShell({
       {/* Mobile Sidebar Drawer */}
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-50 flex w-72 flex-col justify-between border-r border-sidebar-border bg-sidebar text-sidebar-foreground transition-transform duration-200 lg:hidden",
+          "fixed inset-y-0 left-0 z-50 flex w-72 flex-col justify-between bg-background border-r border-sidebar-border bg-sidebar text-sidebar-foreground transition-transform duration-200 lg:hidden",
           mobileMenuOpen ? "translate-x-0" : "-translate-x-full",
         )}
       >
@@ -240,7 +242,15 @@ export function AppShell({
           </nav>
         </div>
 
-        <div className="border-t border-sidebar-border/40 p-4">
+        <div className="space-y-1.5 border-t border-sidebar-border/40 p-4">
+          <Link
+            href="/pengaturan"
+            onClick={() => setMobileMenuOpen(false)}
+            className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-sidebar-muted transition-colors hover:bg-white/10 hover:text-white"
+          >
+            <LuSettings className="size-4 shrink-0" />
+            <span>Pengaturan Warung</span>
+          </Link>
           <button
             onClick={handleLogout}
             className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-sidebar-muted hover:bg-white/10 hover:text-white"
@@ -251,10 +261,54 @@ export function AppShell({
         </div>
       </aside>
 
+      {/* Mobile Bottom Navigation */}
+      <nav className="fixed right-0 bottom-0 left-0 z-30 grid grid-cols-5 border-t border-border bg-background pb-[env(safe-area-inset-bottom)] lg:hidden" aria-label="Navigasi mobile">
+        {[
+          { label: "Dashboard", href: "/dashboard", icon: LuLayoutDashboard },
+          { label: "Produk", href: "/produk", icon: LuPackage },
+          { label: "Kasir", href: "/kasir", icon: LuStore, featured: true },
+          { label: "Transaksi", href: "/transaksi", icon: LuReceipt },
+        ].map((item) => {
+          const Icon = item.icon;
+          const isActive = item.href === "/dashboard"
+            ? pathname === "/dashboard" || pathname === "/"
+            : pathname.startsWith(item.href);
+
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={cn(
+                "relative flex min-h-16 flex-col items-center justify-center gap-1 text-[11px] font-medium transition-colors",
+                item.featured && "-mt-4 min-h-20",
+                isActive ? "text-primary" : "text-muted-foreground hover:text-foreground",
+              )}
+            >
+              <span className={cn(
+                "flex items-center justify-center",
+                item.featured && "size-12 rounded-2xl bg-primary text-white ring-4 ring-background",
+              )}>
+                <Icon className={cn("size-5", item.featured && "size-6")} />
+              </span>
+              <span>{item.label}</span>
+            </Link>
+          );
+        })}
+        <button
+          type="button"
+          onClick={() => setMobileMenuOpen(true)}
+          className="flex min-h-16 flex-col items-center justify-center gap-1 text-[11px] font-medium text-muted-foreground transition-colors hover:text-foreground"
+          aria-label="Buka semua menu navigasi"
+        >
+          <LuMenu className="size-5" />
+          <span>Menu</span>
+        </button>
+      </nav>
+
       {/* Main Content Area */}
       <div className="flex min-w-0 flex-1 flex-col lg:pl-64">
         {/* Top Navigation Bar */}
-        <header className="bg-card/95 sticky top-0 z-20 flex min-h-16 items-center justify-between gap-3 border-b border-border px-3 py-3 backdrop-blur sm:px-6">
+        <header className="bg-card/95 sticky top-0 z-20 flex min-h-16 items-center justify-between gap-3 border-b border-border px-3 py-3 bg-background sm:px-6">
           <div className="flex min-w-0 items-center gap-2 sm:gap-3">
             <button
               onClick={() => setMobileMenuOpen(true)}
@@ -276,7 +330,7 @@ export function AppShell({
           <div className="flex shrink-0 items-center gap-1.5 sm:gap-4">
             <Link
               href="/kasir"
-              className="inline-flex items-center gap-2 rounded-lg bg-primary px-2.5 py-2 text-xs font-semibold text-white shadow-sm transition-colors hover:bg-primary/90 sm:px-3.5 sm:text-sm"
+              className="inline-flex size-10 items-center justify-center rounded-full border border-primary/30 bg-primary text-xs font-semibold text-white transition-colors hover:bg-primary/90 sm:size-auto sm:gap-2 sm:rounded-lg sm:px-3.5 sm:py-2 sm:text-sm"
             >
               <LuStore className="size-4 shrink-0" />
               <span className="hidden sm:inline">Buka Kasir</span>
@@ -301,7 +355,7 @@ export function AppShell({
         </header>
 
         {/* Page Content Viewport */}
-        <main className="min-w-0 flex-1 overflow-x-hidden p-3 sm:p-6 lg:p-8">{children}</main>
+        <main className="min-w-0 flex-1 overflow-x-hidden p-3 pb-24 sm:p-6 sm:pb-24 lg:p-8 lg:pb-8">{children}</main>
       </div>
     </div>
   );

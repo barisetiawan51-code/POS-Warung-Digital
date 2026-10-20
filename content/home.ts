@@ -1,6 +1,6 @@
 export const home = {
   hero: {
-    eyebrow: "Starter Tokigo",
+    eyebrow: "POS GoletAja",
     title: "Struktur netral untuk membangun website klien.",
     description:
       "Setiap proyek dimulai dari fondasi yang sama: halaman tipis, section per halaman, konten terpisah, dan design system yang hidup. Ganti token dan kontennya, bukan strukturnya.",

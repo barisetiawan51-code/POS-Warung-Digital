@@ -47,6 +47,7 @@ import {
   dispatchSyncEvent,
 } from "./supabase-service";
 import { insertCategoryServer } from "./category-server";
+import { fetchProductsServer, fetchProductServer, fetchOrderServer, insertOrderServer, verifyPaymentServer, processRefundServer } from "./supabase-server-service";
 
 // In-memory fallback state for testing and execution without live Supabase
 interface StateStore {
@@ -603,7 +604,7 @@ export async function getProducts(options?: {
 export async function getProductById(id: string): Promise<Product | null> {
   const products = await getProducts();
   const found = products.find((p) => p.id === id);
-  if (found) return found;
+  if (found?.is_active) return found;
 
   // Direct Supabase lookup if not in list
   const supabase = getClient();
@@ -990,16 +991,34 @@ export async function processCheckout(
   let subtotal = 0;
   const orderItems: OrderItem[] = [];
   const stockDeductions: { product: Product; qty: number }[] = [];
+  const freshProducts = await fetchProductsServer();
+  store.products = freshProducts;
+
+  const targetId = payload.items[0]?.product_id;
+  console.log("[CHECKOUT DEBUG]", {
+    targetId,
+    totalProducts: freshProducts.length,
+    matchingProduct: freshProducts.find(
+      (p) => String(p.id).trim() === String(targetId).trim(),
+    ),
+  });
 
   for (const item of payload.items) {
-    let product = store.products.find(
+    let product = freshProducts.find(
       (p) => p.id === item.product_id && p.is_active,
     );
     if (!product) {
-      const dbProd = await getProductById(item.product_id);
+      console.log("[CHECKOUT DEBUG] Product tidak ditemukan di getProducts", {
+        productId: item.product_id,
+        activeProducts: freshProducts.filter((p) => p.is_active).length,
+      });
+      const dbProd = await fetchProductServer(item.product_id);
       if (dbProd && dbProd.is_active) {
         product = dbProd;
-        store.products.push(dbProd);
+        store.products = [
+          ...store.products.filter((stored) => stored.id !== dbProd.id),
+          dbProd,
+        ];
       }
     }
     if (!product) {
@@ -1078,7 +1097,7 @@ export async function processCheckout(
   const paymentStatus =
     payload.payment_method === "transfer" ? "pending" : "paid";
 
-  const dbRes = await insertOrderWithItemsSupabase({
+  const dbRes = await insertOrderServer({
     invoiceNumber,
     idempotencyKey: payload.idempotency_key || null,
     subtotal,
@@ -1090,12 +1109,7 @@ export async function processCheckout(
     cashChange: payload.payment_method === "cash" ? cashChange : null,
     items: orderItems,
     stockDeductions: stockDeductions.map(({ product, qty }) => ({
-      product: {
-        id: product.id,
-        name: product.name,
-        sku: product.sku,
-        stock: product.stock,
-      },
+      product: { id: product.id, name: product.name },
       qty,
     })),
   });
@@ -1254,17 +1268,7 @@ export async function refundOrder(
   reason: string,
 ): Promise<{ success: boolean; message: string }> {
   const store = getStore();
-  await getOrders();
-  let order = store.orders.find(
-    (o) => o.id === orderId || o.invoice_number === orderId,
-  );
-  if (!order) {
-    const fetched = await getOrderById(orderId);
-    if (fetched) {
-      order = fetched;
-    }
-  }
-
+  const order = await fetchOrderServer(orderId);
   if (!order) {
     return { success: false, message: "Transaksi tidak ditemukan." };
   }
@@ -1313,10 +1317,8 @@ export async function refundOrder(
     order.payment.payment_status = isCancellation ? "failed" : "refunded";
   }
 
-  const refundSaved = await processRefundSupabase(
+  const refundSaved = await processRefundServer(
     order.id,
-    order.invoice_number,
-    reason,
     (order.items || []).map((i) => ({
       product_id: i.product_id,
       quantity: i.quantity,
@@ -1341,28 +1343,12 @@ export async function refundOrder(
 export async function verifyPayment(
   orderId: string,
 ): Promise<{ success: boolean; message: string }> {
-  const store = getStore();
-  await getOrders();
-  let order = store.orders.find(
-    (o) => o.id === orderId || o.invoice_number === orderId,
-  );
+  const order = await fetchOrderServer(orderId);
   if (!order) {
-    const fetched = await getOrderById(orderId);
-    if (fetched) {
-      order = fetched;
-    }
+    return { success: false, message: "Transaksi tidak ditemukan." };
   }
 
-  if (!order || !order.payment) {
-    return { success: false, message: "Pembayaran tidak ditemukan." };
-  }
-
-  order.payment.payment_status = "paid";
-  order.payment.verification_timestamp = new Date().toISOString();
-  order.payment.verification_user = "Bari Setiawan";
-  order.transaction_status = "completed";
-
-  const paymentSaved = await verifyPaymentSupabase(order.id);
+  const paymentSaved = await verifyPaymentServer(order.id);
   if (!paymentSaved) {
     return { success: false, message: "Verifikasi pembayaran gagal disimpan ke Supabase." };
   }
@@ -1452,7 +1438,7 @@ export async function adjustStock(payload: {
 // -----------------------------------------------------------------------------
 
 export async function getDashboardStats(): Promise<DashboardStats> {
-  const [products, orders] = await Promise.all([getProducts(), getOrders()]);
+  const [products, orders] = await Promise.all([fetchProductsServer(), getOrders()]);
   const completedOrders = orders.filter(
     (order) =>
       order.transaction_status === "completed" ||

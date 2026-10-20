@@ -104,8 +104,8 @@ export function useProducts(options?: {
   }, [fetch]);
 
   useEffect(() => {
-    const cleanup = subscribeToProducts((prods) => {
-      setData(prods);
+    const cleanup = subscribeToProducts(() => {
+      setData([]);
       void fetch();
     });
     return cleanup ? cleanup : undefined;
