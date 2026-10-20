@@ -362,7 +362,7 @@ export async function deleteProductSupabase(id: string): Promise<boolean> {
     const ownerId = await getActiveOwnerId();
     const { data, error } = await supabase
       .from("products")
-      .update({ is_active: false, updated_at: new Date().toISOString() })
+      .delete()
       .eq("id", id)
       .eq("owner_id", ownerId)
       .select("id")

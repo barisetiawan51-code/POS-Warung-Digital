@@ -858,24 +858,6 @@ export async function deleteProduct(
   await getProducts();
   const index = store.products.findIndex((p) => p.id === id);
   if (index !== -1) {
-    const prod = store.products[index];
-    // Jika stok ada saat produk di-delete, catat di ledger mutasi bahwa stok hilang/dihapus
-    if (prod.stock > 0) {
-      store.stockMovements.unshift({
-        id: `sm-${Date.now()}`,
-        owner_id: prod.owner_id || "owner-1",
-        product_id: prod.id,
-        product_name: prod.name,
-        sku: prod.sku,
-        quantity_change: -prod.stock,
-        balance_after: 0,
-        reason: "loss",
-        acting_user: store.settings.owner_name || "Bari Setiawan",
-        notes: `Produk "${prod.name}" dihapus dari sistem (stok ${prod.stock} dihapus)`,
-        created_at: new Date().toISOString(),
-      });
-    }
-    // Hapus dari daftar produk sehingga stok hilang dari inventaris
     store.products.splice(index, 1);
   }
 
@@ -886,7 +868,6 @@ export async function deleteProduct(
   }
 
   dispatchSyncEvent("products");
-  dispatchSyncEvent("stock_movements");
   return { success: true };
 }
 

@@ -116,7 +116,7 @@ export async function deleteProductServer(id: string) {
   const { client, ownerId } = await authorizedClient();
   const { data, error } = await client
     .from("products")
-    .update({ is_active: false, updated_at: new Date().toISOString() })
+    .delete()
     .eq("id", id)
     .eq("owner_id", ownerId)
     .select("id")
