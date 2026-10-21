@@ -37,6 +37,44 @@ export async function fetchProductServer(id: string): Promise<Product | null> {
   const products = await fetchProductsServer();
   return products.find((product) => product.id === id && product.is_active) ?? null;
 }
+export async function fetchOrdersServer(): Promise<Order[]> {
+  const client = await createClient();
+  const { data: userData, error: userError } = await client.auth.getUser();
+  if (userError || !userData.user) return [];
+
+  const { data, error } = await client
+    .from("orders")
+    .select("*, order_items(*), payments(*)")
+    .eq("owner_id", userData.user.id)
+    .order("created_at", { ascending: false });
+  if (error || !data) return [];
+
+  return (data as any[]).map((row) => {
+    const payment = row.payments?.[0];
+    return {
+      ...row,
+      subtotal: Number(row.subtotal),
+      discount: Number(row.discount),
+      total: Number(row.total),
+      items: (row.order_items ?? []).map((item: any) => ({
+        ...item,
+        quantity: Number(item.quantity),
+        unit_price: Number(item.unit_price),
+        cost_price: Number(item.cost_price),
+        line_subtotal: Number(item.line_subtotal),
+      })),
+      payment: payment
+        ? {
+            ...payment,
+            amount: Number(payment.amount),
+            cash_received: payment.cash_received == null ? null : Number(payment.cash_received),
+            cash_change: payment.cash_change == null ? null : Number(payment.cash_change),
+          }
+        : null,
+    } as Order;
+  });
+}
+
 export async function insertOrderServer(payload: { invoiceNumber: string; idempotencyKey?: string | null; subtotal: number; discount: number; total: number; notes?: string | null; paymentMethod: "cash" | "transfer" | "online"; cashReceived?: number | null; cashChange?: number | null; items: OrderItem[]; stockDeductions: { product: { id: string; name: string }; qty: number }[] }): Promise<{ success: boolean; orderId?: string; error?: string }> {
   const client = await createClient();
   const { data: userData, error: userError } = await client.auth.getUser();

@@ -17,6 +17,7 @@ import {
   LuMenu,
   LuX,
   LuShoppingCart,
+  LuShoppingBasket
 } from "react-icons/lu";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { site } from "@/content/site";
@@ -113,7 +114,7 @@ export function AppShell({
           {/* Brand Header */}
           <div className="flex items-center gap-3 border-b border-sidebar-border/40 px-6 py-6">
             <div className="flex size-10 items-center justify-center rounded-xl border border-primary/40 bg-primary/20 text-white shadow-sm">
-              <LuShoppingCart className="size-5 text-white" />
+              <LuShoppingBasket className="size-6 text-white" />
             </div>
             <div>
               <h1 className="text-lg leading-none font-bold tracking-tight text-white">
@@ -159,7 +160,12 @@ export function AppShell({
         <div className="space-y-1.5 border-t border-sidebar-border/40 p-4">
           <Link
             href="/pengaturan"
-            className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-sidebar-muted transition-colors hover:bg-white/10 hover:text-white"
+            className={cn(
+              "flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
+              pathname.startsWith("/pengaturan")
+                ? "bg-primary font-medium text-white shadow-sm"
+                : "text-sidebar-muted hover:bg-white/10 hover:text-white",
+            )}
           >
             <LuSettings className="size-4 shrink-0" />
             <span>Pengaturan Warung</span>
@@ -192,8 +198,8 @@ export function AppShell({
         <div>
           <div className="flex items-center justify-between border-b border-sidebar-border/40 px-6 py-5">
             <div className="flex items-center gap-3">
-              <div className="flex size-9 items-center justify-center rounded-lg border border-primary/40 bg-primary/20 text-white">
-                <LuShoppingCart className="size-4 text-white" />
+              <div className="flex size-9 items-center justify-center rounded-xl border border-primary/40 bg-primary/20 text-white">
+                <LuShoppingBasket className="size-6 text-white" />
               </div>
               <div>
                 <h2 className="text-base leading-none font-bold text-white">
@@ -211,9 +217,8 @@ export function AppShell({
               <LuX className="size-5" />
             </button>
           </div>
-
           <nav className="mt-4 space-y-1 px-3">
-            {navItems.map((item) => {
+            {primaryNavItems.map((item) => {
               const Icon = item.icon;
               const isActive =
                 item.href === "/dashboard"
@@ -246,7 +251,12 @@ export function AppShell({
           <Link
             href="/pengaturan"
             onClick={() => setMobileMenuOpen(false)}
-            className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-sidebar-muted transition-colors hover:bg-white/10 hover:text-white"
+            className={cn(
+              "flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
+              pathname.startsWith("/pengaturan")
+                ? "bg-primary font-medium text-white shadow-sm"
+                : "text-sidebar-muted hover:bg-white/10 hover:text-white",
+            )}
           >
             <LuSettings className="size-4 shrink-0" />
             <span>Pengaturan Warung</span>

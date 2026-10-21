@@ -183,7 +183,7 @@ export function ProductList() {
 
         {/* Product Table */}
         <div className="bg-card overflow-hidden rounded-xl border border-border shadow-xs">
-          <div className="overflow-x-auto">
+          <div className="scrollbar-thin max-h-[calc(100vh-18rem)] overflow-auto md:max-h-[calc(100vh-16rem)]">
             <table className="w-full text-left text-xs">
               <thead className="border-b border-border bg-muted/50 text-[11px] font-bold tracking-wider text-muted-foreground uppercase">
                 <tr>

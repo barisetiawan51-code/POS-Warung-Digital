@@ -23,6 +23,7 @@ export interface CustomSelectProps {
   searchable?: boolean;
   error?: boolean;
   className?: string;
+  listClassName?: string;
   "aria-label"?: string;
 }
 
@@ -36,6 +37,7 @@ export function CustomSelect({
   searchable = false,
   error = false,
   className,
+  listClassName,
   "aria-label": ariaLabel,
 }: CustomSelectProps) {
   const [open, setOpen] = useState(false);
@@ -225,7 +227,7 @@ export function CustomSelect({
         )}
 
         {/* Options list */}
-        <ul className="max-h-72 overflow-y-auto overscroll-contain py-1.5">
+        <ul className={cn("scrollbar-thin max-h-72 overflow-y-auto overscroll-contain py-1.5", listClassName)}>
           {groups.length === 0 && (
             <li className="px-4 py-6 text-center text-xs text-muted-foreground">
               Tidak ada hasil ditemukan.

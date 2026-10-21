@@ -47,7 +47,7 @@ import {
   dispatchSyncEvent,
 } from "./supabase-service";
 import { insertCategoryServer } from "./category-server";
-import { fetchProductsServer, fetchProductServer, fetchOrderServer, insertOrderServer, verifyPaymentServer, processRefundServer } from "./supabase-server-service";
+import { fetchProductsServer, fetchProductServer, fetchOrderServer, fetchOrdersServer, insertOrderServer, verifyPaymentServer, processRefundServer } from "./supabase-server-service";
 
 // In-memory fallback state for testing and execution without live Supabase
 interface StateStore {
@@ -1438,7 +1438,7 @@ export async function adjustStock(payload: {
 // -----------------------------------------------------------------------------
 
 export async function getDashboardStats(): Promise<DashboardStats> {
-  const [products, orders] = await Promise.all([fetchProductsServer(), getOrders()]);
+  const [products, orders] = await Promise.all([fetchProductsServer(), fetchOrdersServer()]);
   const completedOrders = orders.filter(
     (order) =>
       order.transaction_status === "completed" ||
@@ -1546,6 +1546,7 @@ export async function getDashboardStats(): Promise<DashboardStats> {
       todayTransactions,
       yesterdayTransactions,
     ),
+    totalProducts: products.length,
     lowStockCount: products.filter(
       (product) => product.stock <= product.minimum_stock,
     ).length,

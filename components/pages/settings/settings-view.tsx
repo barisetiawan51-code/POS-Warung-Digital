@@ -52,7 +52,7 @@ export function SettingsView({ initialSettings }: SettingsViewProps) {
     () => settings.qris_nmid || "ID1020261017001",
   );
   const [qrisImageUrl, setQrisImageUrl] = useState(
-    () => settings.qris_image_url || "/qris-warung.svg",
+    () => settings.qris_image_url || "/images/qris-warung.svg",
   );
   const [defaultMinStock, setDefaultMinStock] = useState(
     () => settings.default_minimum_stock,
@@ -88,7 +88,7 @@ export function SettingsView({ initialSettings }: SettingsViewProps) {
   };
 
   const handleResetQrisImage = () => {
-    setQrisImageUrl("/qris-warung.svg");
+    setQrisImageUrl("/images/qris-warung.svg");
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -139,7 +139,7 @@ export function SettingsView({ initialSettings }: SettingsViewProps) {
         bank_account_number: bankNumber.trim(),
         bank_account_holder: bankHolder.trim(),
         qris_nmid: qrisNmid.trim(),
-        qris_image_url: qrisImageUrl.trim() || "/qris-warung.svg",
+        qris_image_url: qrisImageUrl.trim() || "/images/qris-warung.svg",
         default_minimum_stock: defaultMinStock,
       });
 
@@ -180,7 +180,7 @@ export function SettingsView({ initialSettings }: SettingsViewProps) {
           {/* Section 1: Store & Owner Identity */}
           <div className="bg-card space-y-4 rounded-xl border border-border p-6 shadow-xs">
             <div className="flex items-center gap-2.5 border-b border-border pb-3">
-              <LuStore className="size-5 text-primary" />
+              <LuStore className="size-10 text-primary md:size-5" />
               <div>
                 <h3 className="text-sm font-bold text-foreground">
                   Profil & Identitas Warung
@@ -265,10 +265,10 @@ export function SettingsView({ initialSettings }: SettingsViewProps) {
           {/* Section 2: Account & Security (Ganti Email & Password) */}
           <div className="bg-card space-y-4 rounded-xl border border-border p-6 shadow-xs">
             <div className="flex items-center gap-2.5 border-b border-border pb-3">
-              <LuKeyRound className="size-5 text-primary" />
+              <LuKeyRound className="size-10 text-primary md:size-5" />
               <div>
                 <h3 className="text-sm font-bold text-foreground">
-                  Akun & Keamanan (Ganti Email & Kata Sandi)
+                  Akun & Keamanan
                 </h3>
                 <p className="text-[11px] text-muted-foreground">
                   Kelola email dan kata sandi login pemilik. Perubahan akan
@@ -360,7 +360,7 @@ export function SettingsView({ initialSettings }: SettingsViewProps) {
           {/* Section 3: Bank Transfer Destination */}
           <div className="bg-card space-y-4 rounded-xl border border-border p-6 shadow-xs">
             <div className="flex items-center gap-2.5 border-b border-border pb-3">
-              <LuCreditCard className="size-5 text-primary" />
+              <LuCreditCard className="size-7 text-primary md:size-5" />
               <h3 className="text-sm font-bold text-foreground">
                 Rekening Tujuan Transfer Pelanggan (Manual)
               </h3>
@@ -412,10 +412,10 @@ export function SettingsView({ initialSettings }: SettingsViewProps) {
           <div className="bg-card space-y-4 rounded-xl border border-border p-6 shadow-xs">
             <div className="flex items-center justify-between border-b border-border pb-3">
               <div className="flex items-center gap-2.5">
-                <LuQrCode className="size-5 text-primary" />
+                <LuQrCode className="size-10 text-primary md:size-5" />
                 <div>
                   <h3 className="text-sm font-bold text-foreground">
-                    Barcode QRIS Warung (Scan Gambar)
+                    Barcode QRIS Warung
                   </h3>
                   <p className="text-[11px] text-muted-foreground">
                     QRIS statis standar nasional tanpa biaya gateway pihak
@@ -423,10 +423,6 @@ export function SettingsView({ initialSettings }: SettingsViewProps) {
                   </p>
                 </div>
               </div>
-
-              <span className="rounded-full bg-emerald-500/10 px-2.5 py-1 text-[10px] font-bold text-emerald-600 dark:text-emerald-400">
-                Aktif di Kasir
-              </span>
             </div>
 
             <div className="grid grid-cols-1 items-start gap-6 sm:grid-cols-3">
@@ -434,10 +430,11 @@ export function SettingsView({ initialSettings }: SettingsViewProps) {
               <div className="dark:bg-card flex flex-col items-center justify-center rounded-xl border border-border bg-white p-4">
                 <div className="flex h-52 w-full items-center justify-center overflow-hidden rounded-lg border border-border bg-slate-50/50 p-2 dark:bg-muted/10">
                   <Image
-                    src={qrisImageUrl || "/qris-warung.svg"}
+                    src={qrisImageUrl || "/images/qris-warung.svg"}
                     alt="Pratinjau Barcode QRIS Warung"
                     width={160}
                     height={192}
+                    loading="eager"
                     unoptimized={Boolean(qrisImageUrl?.startsWith("data:"))}
                     className="h-auto max-h-48 w-auto max-w-full object-contain"
                   />
@@ -447,18 +444,9 @@ export function SettingsView({ initialSettings }: SettingsViewProps) {
                 </span>
 
                 <div className="mt-3 flex w-full flex-col gap-2">
-                  <label className="cursor-pointer inline-flex w-full items-center justify-center gap-1.5 rounded-lg border border-border/80 bg-background px-3 py-2 text-xs font-semibold text-foreground transition-colors hover:bg-muted/50">
-                    <LuUpload className="size-3.5 text-primary" />
-                    <span>Ganti Gambar QRIS</span>
-                    <input
-                      type="file"
-                      accept="image/png, image/jpeg, image/jpg, image/webp, image/svg+xml"
-                      onChange={handleQrisFileChange}
-                      className="hidden"
-                    />
-                  </label>
 
-                  {qrisImageUrl !== "/qris-warung.svg" && (
+
+                  {qrisImageUrl !== "/images/qris-warung.svg" && (
                     <button
                       type="button"
                       onClick={handleResetQrisImage}

@@ -164,6 +164,7 @@ export type DashboardStats = {
   todayTransactions: number;
   yesterdayTransactions: number;
   transactionGrowthPercent: number;
+  totalProducts: number;
   lowStockCount: number;
   chartData: {
     date: string;

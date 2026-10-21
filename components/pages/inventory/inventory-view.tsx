@@ -600,6 +600,7 @@ export function InventoryView({ storeName }: InventoryViewProps) {
                     value={reason}
                     onChange={setReason}
                     searchable
+                    listClassName="max-h-24"
                     options={
                       adjustmentType === "add"
                         ? [

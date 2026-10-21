@@ -1,9 +1,11 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import {
   LuTrendingUp,
   LuBanknote,
+  LuPackage,
   LuTriangleAlert,
   LuArrowRight,
   LuExternalLink,
@@ -53,6 +55,7 @@ function formatMethodUpper(method?: string): string {
 }
 
 export function DashboardView({ stats }: DashboardViewProps) {
+  const [hoveredPoint, setHoveredPoint] = useState<number | null>(null);
   const { data: liveSettings } = useStoreSettings();
   const settings = liveSettings ?? { store_name: "" };
 
@@ -107,15 +110,15 @@ export function DashboardView({ stats }: DashboardViewProps) {
           </div>
         </div>
 
-        {/* 3 Metric Cards Grid */}
-        <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
+        {/* 4 Metric Cards Grid */}
+        <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4">
           {/* Card 1: Penjualan Hari Ini */}
           <div className="bg-card relative overflow-hidden rounded-xl border border-border p-6 shadow-xs">
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold tracking-wider text-muted-foreground uppercase">
                 Penjualan Hari Ini
               </span>
-              <div className="flex size-9 items-center justify-center rounded-lg bg-blue-50 text-primary dark:bg-blue-950/50">
+              <div className="flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
                 <LuTrendingUp className="size-5" />
               </div>
             </div>
@@ -138,7 +141,7 @@ export function DashboardView({ stats }: DashboardViewProps) {
               <span className="text-xs font-bold tracking-wider text-muted-foreground uppercase">
                 Jumlah Transaksi
               </span>
-              <div className="flex size-9 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600 dark:bg-emerald-950/50">
+              <div className="flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
                 <LuBanknote className="size-5" />
               </div>
             </div>
@@ -155,14 +158,34 @@ export function DashboardView({ stats }: DashboardViewProps) {
             </div>
           </div>
 
-          {/* Card 3: Stok Menipis */}
+          {/* Card 3: Total Produk */}
+          <div className="bg-card relative overflow-hidden rounded-xl border border-border p-6 shadow-xs">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold tracking-wider text-muted-foreground uppercase">
+                Total Produk
+              </span>
+              <div className="flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                <LuPackage className="size-5" />
+              </div>
+            </div>
+            <div className="mt-4">
+              <div className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+                {stats.totalProducts} Produk
+              </div>
+              <p className="mt-2 text-xs font-medium text-muted-foreground">
+                Produk terdaftar di inventaris
+              </p>
+            </div>
+          </div>
+
+          {/* Card 4: Stok Menipis */}
           <div className="bg-card relative flex flex-col justify-between overflow-hidden rounded-xl border border-border p-6 shadow-xs">
             <div>
               <div className="flex items-center justify-between">
                 <span className="text-xs font-bold tracking-wider text-muted-foreground uppercase">
                   Stok Menipis
                 </span>
-                <div className="flex size-9 items-center justify-center rounded-lg bg-amber-50 text-amber-500 dark:bg-amber-950/50">
+                <div className="flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
                   <LuTriangleAlert className="size-5" />
                 </div>
               </div>
@@ -210,7 +233,7 @@ export function DashboardView({ stats }: DashboardViewProps) {
             </div>
 
             {/* SVG Chart */}
-            <div className="mt-6 w-full overflow-x-auto">
+            <div className="scrollbar-thin mt-6 w-full overflow-x-auto pb-5">
               <div className="relative min-w-[500px]">
                 {/* Y-axis guidelines */}
                 <div className="pointer-events-none absolute inset-x-0 top-0 flex h-[180px] flex-col justify-between pl-2 text-[11px] text-muted-foreground">
@@ -271,7 +294,7 @@ export function DashboardView({ stats }: DashboardViewProps) {
                     const cx = getX(i);
                     const cy = getY(p.sales);
                     return (
-                      <g key={p.date} className="group cursor-pointer">
+                      <g key={p.date} className="group cursor-pointer" onMouseEnter={() => setHoveredPoint(i)} onMouseLeave={() => setHoveredPoint(null)} onFocus={() => setHoveredPoint(i)} onBlur={() => setHoveredPoint(null)} tabIndex={0}>
                         <circle
                           cx={cx}
                           cy={cy}
@@ -283,6 +306,21 @@ export function DashboardView({ stats }: DashboardViewProps) {
                     );
                   })}
                 </svg>
+
+                {hoveredPoint !== null && (
+                  <div
+                    className="pointer-events-none absolute z-10 -mt-8 -translate-x-1/2 -translate-y-full rounded-xl border border-border bg-card bg-foreground px-3 py-2 text-xs shadow-lg"
+                    style={{
+                      left: `${(getX(hoveredPoint) / svgWidth) * 100}%`,
+                      top: `${(getY(points[hoveredPoint].sales) / svgHeight) * 100}%`,
+                    }}
+                  >
+                    <p className="font-semibold text-muted">{points[hoveredPoint].label}</p>
+                    <p className="mt-0.5 whitespace-nowrap text-muted">
+                      Total: <span className="font-bold text-muted">{formatRupiah(points[hoveredPoint].sales)}</span>
+                    </p>
+                  </div>
+                )}
 
                 {/* X-axis labels */}
                 <div className="mt-2 flex justify-between px-8 text-xs font-medium text-muted-foreground">
