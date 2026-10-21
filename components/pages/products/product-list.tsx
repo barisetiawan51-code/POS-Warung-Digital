@@ -7,7 +7,6 @@ import {
   LuSearch,
   LuPackage,
   LuPenLine,
-  LuCheck,
   LuX,
   LuTriangleAlert,
   LuTrash2,
@@ -17,7 +16,7 @@ import {
 import type { Product } from "@/lib/types/pos";
 import { useProducts, useCategories, useStoreSettings } from "@/lib/hooks/useRealtime";
 import { formatRupiah } from "@/lib/format";
-import { deleteProductAction, setProductActiveAction } from "@/lib/actions/product-actions";
+import { deleteProductAction } from "@/lib/actions/product-actions";
 import { AppShell } from "@/components/layouts/app-shell";
 import { CustomSelect } from "@/components/ui/custom-select";
 import { cn } from "@/lib/utils";
@@ -46,36 +45,6 @@ export function ProductList() {
       (p.sku ?? "").toLowerCase().includes(q);
     return matchCat && matchQ;
   });
-
-  const handleToggleStatus = async (product: Product) => {
-    setFeedback(null);
-
-    try {
-      const newStatus = !product.is_active;
-      const res = await setProductActiveAction(product.id, newStatus);
-
-      if (!res.success) {
-        setFeedback({
-          type: "error",
-          message: res.error || "Gagal memperbarui status produk.",
-        });
-        return;
-      }
-
-      setFeedback({
-        type: "success",
-        message: `Produk "${product.name}" berhasil ${
-          newStatus ? "diaktifkan" : "dinonaktifkan"
-        }.`,
-      });
-      // Realtime hook + sync event refreshes UI automatically
-    } catch {
-      setFeedback({
-        type: "error",
-        message: "Terjadi kesalahan saat memperbarui status produk.",
-      });
-    }
-  };
 
   const handleConfirmDelete = async () => {
     if (!deletingProduct) return;
@@ -185,7 +154,7 @@ export function ProductList() {
         <div className="bg-card overflow-hidden rounded-xl border border-border shadow-xs">
           <div className="scrollbar-thin max-h-[calc(100vh-18rem)] overflow-auto md:max-h-[calc(100vh-16rem)]">
             <table className="w-full text-left text-xs">
-              <thead className="border-b border-border bg-muted/50 text-[11px] font-bold tracking-wider text-muted-foreground uppercase">
+              <thead className="whitespace-nowrap border-b border-border bg-muted/50 text-[11px] font-bold tracking-wider text-muted-foreground uppercase">
                 <tr>
                   <th className="px-4 py-3.5">SKU</th>
                   <th className="px-4 py-3.5">Nama Produk</th>
@@ -298,22 +267,6 @@ export function ProductList() {
                           >
                             <LuPenLine className="size-4" />
                           </Link>
-                          <button
-                            type="button"
-                            onClick={() => handleToggleStatus(prod)}
-                            className="rounded p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground"
-                            title={
-                              prod.is_active
-                                ? "Nonaktifkan Produk"
-                                : "Aktifkan Produk"
-                            }
-                          >
-                            {prod.is_active ? (
-                              <LuX className="size-4 text-amber-600" />
-                            ) : (
-                              <LuCheck className="size-4 text-emerald-500" />
-                            )}
-                          </button>
                           <button
                             type="button"
                             onClick={() => setDeletingProduct(prod)}

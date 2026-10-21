@@ -215,7 +215,7 @@ export function InventoryView({ storeName }: InventoryViewProps) {
           <div className="bg-card overflow-hidden rounded-2xl border border-border/80 shadow-xs">
             <div className="overflow-x-auto">
               <table className="w-full min-w-[760px] text-left text-xs">
-                <thead className="border-b border-border/80 bg-muted/30 text-[11px] font-bold tracking-wider text-muted-foreground uppercase">
+                <thead className="whitespace-nowrap border-b border-border/80 bg-muted/30 text-[11px] font-bold tracking-wider text-muted-foreground uppercase">
                   <tr>
                     <th className="py-4 pl-6 pr-4">Nama Produk / SKU</th>
                     <th className="px-4 py-4">Kategori</th>
@@ -276,14 +276,7 @@ export function InventoryView({ storeName }: InventoryViewProps) {
                         </td>
                         <td className="px-4 py-3.5 text-[13px]">
                           <span
-                            className={cn(
-                              "font-bold",
-                              isZero
-                                ? "text-rose-600 dark:text-rose-400"
-                                : isLow
-                                  ? "text-amber-500 dark:text-amber-400"
-                                  : "text-emerald-600 dark:text-emerald-400",
-                            )}
+                            className="font-medium text-muted-foreground"
                           >
                             {p.stock}
                           </span>{" "}

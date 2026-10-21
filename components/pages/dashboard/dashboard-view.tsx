@@ -13,6 +13,11 @@ import {
 } from "react-icons/lu";
 import type { DashboardStats, Order } from "@/lib/types/pos";
 import { formatRupiah } from "@/lib/format";
+
+function formatCompactRupiah(amount: number): string {
+  if (amount >= 1000) return `Rp ${Math.round(amount / 1000)}k`;
+  return formatRupiah(amount);
+}
 import { useStoreSettings } from "@/lib/hooks/useRealtime";
 import { AppShell } from "@/components/layouts/app-shell";
 
@@ -111,15 +116,15 @@ export function DashboardView({ stats }: DashboardViewProps) {
         </div>
 
         {/* 4 Metric Cards Grid */}
-        <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4">
+        <div className="grid grid-cols-2 gap-5 md:grid-cols-2 xl:grid-cols-4">
           {/* Card 1: Penjualan Hari Ini */}
-          <div className="bg-card relative overflow-hidden rounded-xl border border-border p-6 shadow-xs">
+          <div className="bg-card relative min-w-0 overflow-hidden rounded-xl border border-border p-3 shadow-xs sm:p-6">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-bold tracking-wider text-muted-foreground uppercase">
+              <span className="whitespace-nowrap text-[10px] font-bold tracking-tight text-muted-foreground uppercase sm:text-xs sm:tracking-wider">
                 Penjualan Hari Ini
               </span>
-              <div className="flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                <LuTrendingUp className="size-5" />
+              <div className="flex size-7 items-center justify-center rounded-lg bg-primary/10 text-primary sm:size-9">
+                <LuTrendingUp className="size-4 sm:size-5" />
               </div>
             </div>
             <div className="mt-4">
@@ -129,20 +134,20 @@ export function DashboardView({ stats }: DashboardViewProps) {
               <p className="mt-2 text-xs font-medium text-emerald-600 dark:text-emerald-400">
                 +{stats.salesGrowthPercent}%{" "}
                 <span className="text-muted-foreground">
-                  dari kemarin ({formatRupiah(stats.yesterdaySales)})
+                  ({formatCompactRupiah(stats.yesterdaySales)} kemarin)
                 </span>
               </p>
             </div>
           </div>
 
           {/* Card 2: Jumlah Transaksi */}
-          <div className="bg-card relative overflow-hidden rounded-xl border border-border p-6 shadow-xs">
+          <div className="bg-card relative min-w-0 overflow-hidden rounded-xl border border-border p-3 shadow-xs sm:p-6">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-bold tracking-wider text-muted-foreground uppercase">
+              <span className="whitespace-nowrap text-[10px] font-bold tracking-tight text-muted-foreground uppercase sm:text-xs sm:tracking-wider">
                 Jumlah Transaksi
               </span>
-              <div className="flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                <LuBanknote className="size-5" />
+              <div className="flex size-7 items-center justify-center rounded-lg bg-primary/10 text-primary sm:size-9">
+                <LuBanknote className="size-4 sm:size-5" />
               </div>
             </div>
             <div className="mt-4">
@@ -159,13 +164,13 @@ export function DashboardView({ stats }: DashboardViewProps) {
           </div>
 
           {/* Card 3: Total Produk */}
-          <div className="bg-card relative overflow-hidden rounded-xl border border-border p-6 shadow-xs">
+          <div className="bg-card relative min-w-0 overflow-hidden rounded-xl border border-border p-3 shadow-xs sm:p-6">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-bold tracking-wider text-muted-foreground uppercase">
+              <span className="whitespace-nowrap text-[10px] font-bold tracking-tight text-muted-foreground uppercase sm:text-xs sm:tracking-wider">
                 Total Produk
               </span>
-              <div className="flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                <LuPackage className="size-5" />
+              <div className="flex size-7 items-center justify-center rounded-lg bg-primary/10 text-primary sm:size-9">
+                <LuPackage className="size-4 sm:size-5" />
               </div>
             </div>
             <div className="mt-4">
@@ -179,21 +184,21 @@ export function DashboardView({ stats }: DashboardViewProps) {
           </div>
 
           {/* Card 4: Stok Menipis */}
-          <div className="bg-card relative flex flex-col justify-between overflow-hidden rounded-xl border border-border p-6 shadow-xs">
+          <div className="bg-card relative min-w-0 overflow-hidden rounded-xl border border-border p-3 shadow-xs sm:p-6">
             <div>
               <div className="flex items-center justify-between">
-                <span className="text-xs font-bold tracking-wider text-muted-foreground uppercase">
+                <span className="whitespace-nowrap text-[10px] font-bold tracking-tight text-muted-foreground uppercase sm:text-xs sm:tracking-wider">
                   Stok Menipis
                 </span>
-                <div className="flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                  <LuTriangleAlert className="size-5" />
+                <div className="flex size-7 items-center justify-center rounded-lg bg-primary/10 text-primary sm:size-9">
+                  <LuTriangleAlert className="size-4 sm:size-5" />
                 </div>
               </div>
               <div className="mt-4">
                 <div className="text-2xl font-bold tracking-tight text-destructive sm:text-3xl">
                   {stats.lowStockCount} Produk
                 </div>
-                <p className="mt-1 text-xs text-muted-foreground">
+                <p className="mt-2 text-xs font-medium text-muted-foreground">
                   Perlu dicek & restock
                 </p>
               </div>
@@ -201,7 +206,7 @@ export function DashboardView({ stats }: DashboardViewProps) {
             <div className="mt-4 flex justify-end">
               <Link
                 href="/stok"
-                className="inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline"
+                className="inline-flex items-center gap-1 text-xs font-semibold text-blue-600 transition-colors hover:text-foreground dark:text-blue-400"
               >
                 <span>Kelola</span>
                 <LuArrowRight className="size-3.5" />
@@ -225,7 +230,7 @@ export function DashboardView({ stats }: DashboardViewProps) {
               </div>
               <Link
                 href="/laporan"
-                className="inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline"
+                className="inline-flex items-center gap-1 text-xs font-semibold text-primary transition-colors hover:text-foreground"
               >
                 <span>Lihat Laporan Lengkap</span>
                 <LuArrowRight className="size-3.5" />
@@ -344,7 +349,7 @@ export function DashboardView({ stats }: DashboardViewProps) {
                 </div>
                 <Link
                   href="/stok"
-                  className="text-xs font-semibold text-blue-600 hover:underline dark:text-blue-400"
+                  className="text-xs font-semibold text-blue-600 transition-colors hover:text-foreground dark:text-blue-400"
                 >
                   Semua ({stats.lowStockCount})
                 </Link>
@@ -403,7 +408,7 @@ export function DashboardView({ stats }: DashboardViewProps) {
 
             <Link
               href="/transaksi"
-              className="inline-flex items-center gap-1 text-xs font-semibold text-blue-600 hover:underline dark:text-blue-400"
+              className="inline-flex items-center gap-1 text-xs font-semibold text-blue-600 transition-colors hover:text-foreground dark:text-blue-400"
             >
               <span>Lihat Semua Transaksi</span>
               <LuExternalLink className="size-3.5" />
@@ -450,7 +455,7 @@ export function DashboardView({ stats }: DashboardViewProps) {
                     <td className="py-3.5 pr-6 pl-4 text-right">
                       <Link
                         href={`/transaksi/${trx.id}`}
-                        className="text-xs font-semibold text-blue-600 hover:underline dark:text-blue-400"
+                        className="text-xs font-semibold text-blue-600 transition-colors hover:text-foreground dark:text-blue-400"
                       >
                         Lihat Struk
                       </Link>

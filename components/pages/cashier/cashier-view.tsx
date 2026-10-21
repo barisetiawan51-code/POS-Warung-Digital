@@ -367,7 +367,7 @@ export function CashierView() {
               {/* Cart Header */}
               <div className="flex items-center justify-between border-b border-border pb-3.5">
                 <div className="flex items-center gap-2">
-                  <div className="flex size-8 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                  <div className="flex size-8 items-center justify-center rounded-2xl bg-primary/10 text-primary">
                     <LuShoppingCart className="size-4" />
                   </div>
                   <div>
@@ -438,7 +438,7 @@ export function CashierView() {
 
                 {cart.length === 0 && (
                   <div className="py-12 text-center text-xs text-muted-foreground">
-                    <LuStore className="mx-auto mb-2 size-8 text-muted-foreground/40" />
+                    <LuStore className="mx-auto mb-2 size-8 text-muted-foreground" />
                     Keranjang masih kosong. Klik tombol (+) pada produk untuk
                     menambahkan.
                   </div>

@@ -34,9 +34,10 @@ interface DailySalesRecord {
   grossProfit: number;
   profitMargin: string;
 }
-
 export function ReportsView({ orders, storeName }: ReportsViewProps) {
-  const [period, setPeriod] = useState<"today" | "week" | "month" | "all">("today");
+  const [period, setPeriod] = useState<"today" | "week" | "month" | "all">("all");
+  const [csvPreview, setCsvPreview] = useState<string | null>(null);
+  const [csvPreviewFilename, setCsvPreviewFilename] = useState("Laporan_WarungKu.csv");
   const { data: liveOrders } = useOrders(orders);
   const ordersForAggregation = liveOrders ?? orders;
 
@@ -262,19 +263,22 @@ export function ReportsView({ orders, storeName }: ReportsViewProps) {
     ].join(","));
 
     const csvContent = "\uFEFF" + [headers.join(","), ...rows].join("\r\n");
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    setCsvPreview(csvContent);
+    setCsvPreviewFilename(`Riwayat_Penjualan_Harian_WarungKu_${period}_${new Date().toISOString().slice(0, 10)}.csv`);
+  };
+
+  const handleDownloadPreview = () => {
+    if (!csvPreview) return;
+    const blob = new Blob([csvPreview], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
-    const filename = `Riwayat_Penjualan_Harian_WarungKu_${period}_${new Date()
-      .toISOString()
-      .slice(0, 10)}.csv`;
-
-    link.setAttribute("href", url);
-    link.setAttribute("download", filename);
+    link.href = url;
+    link.download = csvPreviewFilename;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
+    setCsvPreview(null);
   };
 
   // CSV Export Generator untuk Produk Terlaris (tanpa kolom diskon)
@@ -302,19 +306,8 @@ export function ReportsView({ orders, storeName }: ReportsViewProps) {
     });
 
     const csvContent = "\uFEFF" + [headers.join(","), ...rows].join("\r\n");
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    const filename = `Laporan_Produk_WarungKu_${period}_${new Date()
-      .toISOString()
-      .slice(0, 10)}.csv`;
-
-    link.setAttribute("href", url);
-    link.setAttribute("download", filename);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+    setCsvPreview(csvContent);
+    setCsvPreviewFilename(`Laporan_Produk_WarungKu_${period}_${new Date().toISOString().slice(0, 10)}.csv`);
   };
 
   return (
@@ -337,13 +330,25 @@ export function ReportsView({ orders, storeName }: ReportsViewProps) {
             className="cursor-pointer inline-flex items-center justify-center gap-2 rounded-xl bg-[#123b6b] px-4 py-2.5 text-xs font-bold text-white shadow-xs transition-colors hover:bg-[#123b6b]/90 dark:bg-primary dark:hover:bg-primary/90"
           >
             <LuDownload className="size-4" />
-            <span>Export Laporan ke CSV</span>
+            <span>Preview Laporan CSV</span>
           </button>
         </div>
 
         {/* Filter Periode Card */}
         <div className="bg-card flex flex-col gap-3 rounded-2xl border border-border/80 p-3.5 shadow-xs sm:flex-row sm:items-center sm:justify-between">
           <div className="flex flex-wrap items-center gap-1.5 text-xs">
+            <button
+              type="button"
+              onClick={() => setPeriod("all")}
+              className={cn(
+                "cursor-pointer rounded-lg px-3.5 py-1.5 font-semibold transition-all",
+                period === "all"
+                  ? "bg-primary text-white shadow-xs"
+                  : "text-muted-foreground hover:bg-muted/50 hover:text-foreground",
+              )}
+            >
+              Semua Transaksi
+            </button>
             <button
               type="button"
               onClick={() => setPeriod("today")}
@@ -379,18 +384,6 @@ export function ReportsView({ orders, storeName }: ReportsViewProps) {
               )}
             >
               30 Hari Terakhir
-            </button>
-            <button
-              type="button"
-              onClick={() => setPeriod("all")}
-              className={cn(
-                "cursor-pointer rounded-lg px-3.5 py-1.5 font-semibold transition-all",
-                period === "all"
-                  ? "bg-primary text-white shadow-xs"
-                  : "text-muted-foreground hover:bg-muted/50 hover:text-foreground",
-              )}
-            >
-              Semua Data
             </button>
           </div>
 
@@ -515,7 +508,7 @@ export function ReportsView({ orders, storeName }: ReportsViewProps) {
               className="cursor-pointer inline-flex items-center gap-1.5 self-start rounded-xl border border-border/80 bg-background px-3.5 py-2 text-xs font-semibold text-foreground shadow-2xs transition-colors hover:bg-muted/50 sm:self-auto"
             >
               <LuDownload className="size-3.5 text-muted-foreground" />
-              <span>Export CSV Harian</span>
+              <span>Preview CSV Harian</span>
             </button>
           </div>
 
@@ -623,7 +616,7 @@ export function ReportsView({ orders, storeName }: ReportsViewProps) {
               className="cursor-pointer inline-flex items-center gap-1.5 self-start rounded-xl border border-border/80 bg-background px-3.5 py-2 text-xs font-semibold text-foreground shadow-2xs transition-colors hover:bg-muted/50 sm:self-auto"
             >
               <LuDownload className="size-3.5 text-muted-foreground" />
-              <span>Export CSV Produk</span>
+              <span>Preview CSV Produk</span>
             </button>
           </div>
 
@@ -669,6 +662,41 @@ export function ReportsView({ orders, storeName }: ReportsViewProps) {
           </div>
         </div>
       </div>
+      {csvPreview && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4">
+          <div className="bg-white dark:bg-slate-900 flex max-h-[85vh] w-full max-w-4xl flex-col overflow-hidden rounded-2xl border border-border shadow-2xl">
+            <div className="flex items-center justify-between border-b border-border px-5 py-4">
+              <h3 className="text-sm font-bold text-foreground">Preview Laporan CSV</h3>
+              <button
+                type="button"
+                onClick={() => setCsvPreview(null)}
+                className="rounded-lg px-2 py-1 text-xs font-semibold text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+              >
+                Tutup
+              </button>
+            </div>
+            <pre className="min-h-0 flex-1 overflow-auto whitespace-pre-wrap p-5 text-xs leading-relaxed text-foreground">
+              {csvPreview.replace(/^\uFEFF/, "")}
+            </pre>
+            <div className="flex justify-end gap-2 border-t border-border px-5 py-4">
+              <button
+                type="button"
+                onClick={() => setCsvPreview(null)}
+                className="rounded-xl border border-border px-4 py-2 text-xs font-semibold text-foreground transition-colors hover:bg-muted"
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                onClick={handleDownloadPreview}
+                className="rounded-xl bg-primary px-4 py-2 text-xs font-bold text-white transition-colors hover:bg-primary/90"
+              >
+                Unduh CSV
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </AppShell>
   );
 }

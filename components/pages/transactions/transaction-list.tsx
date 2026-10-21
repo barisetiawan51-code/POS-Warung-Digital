@@ -280,7 +280,7 @@ export function TransactionList({ initialOrders }: TransactionListProps) {
                         <div className="flex items-center gap-3">
                           <Link
                             href={`/transaksi/${order.id}`}
-                            className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary transition-colors hover:underline"
+                            className="inline-flex items-center gap-1.5 text-xs text-primary font-semibold transition-colors hover:text-foreground dark:text-blue-400"
                           >
                             <LuEye className="size-4" />
                             <span>Rincian</span>
