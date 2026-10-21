@@ -1,4 +1,4 @@
-# WarungKu — Sistem Kasir & Manajemen Warung
+# GoletAja — Sistem Kasir & Manajemen Warung
 
 Aplikasi Point of Sale (POS) dan manajemen inventaris toko retail / warung kelontong berbasis web modern, responsif, dan aman untuk pemilik warung di Indonesia.
 
