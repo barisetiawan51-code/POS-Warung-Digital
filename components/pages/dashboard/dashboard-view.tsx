@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import {
   LuTrendingUp,
+  LuTrendingDown,
   LuBanknote,
   LuPackage,
   LuTriangleAlert,
@@ -64,7 +65,6 @@ export function DashboardView({ stats }: DashboardViewProps) {
   const { data: liveSettings } = useStoreSettings();
   const settings = liveSettings ?? { store_name: "" };
 
-  // Compute chart coordinates for SVG line and area
   const points = stats.chartData;
   const maxVal = 1500000; // 1.5jt
   const minVal = 0;
@@ -72,6 +72,13 @@ export function DashboardView({ stats }: DashboardViewProps) {
   const svgHeight = 220;
   const paddingX = 40;
   const paddingY = 20;
+  const firstDaySales = points[0]?.sales ?? 0;
+  const lastDaySales = points.at(-1)?.sales ?? 0;
+  const trendDifference = lastDaySales - firstDaySales;
+  const trendPercent = firstDaySales > 0
+    ? Math.round((trendDifference / firstDaySales) * 100)
+    : lastDaySales > 0 ? 100 : 0;
+  const isTrendUp = trendDifference >= 0;
 
   const getX = (index: number) => {
     return paddingX + (index / (points.length - 1)) * (svgWidth - paddingX * 2);
@@ -97,120 +104,92 @@ export function DashboardView({ stats }: DashboardViewProps) {
 
   return (
     <AppShell
-      pageTitle="Dashboard Ringkasan"
+      pageTitle="Dashboard"
       breadcrumb={`${settings.store_name || ""} / Dashboard`}
       lowStockCount={stats.lowStockCount}
     >
       <div className="space-y-6">
         {/* Welcome Banner Card */}
-        <div className="bg-card flex flex-col items-start justify-between gap-4 rounded-xl border border-border p-6 shadow-xs sm:flex-row sm:items-center">
+        <div className="flex flex-col items-start justify-between gap-5 p-6 sm:flex-row sm:items-center">
           <div>
             <h2 className="text-xl font-bold tracking-tight text-foreground sm:text-2xl">
-              Selamat Datang di {settings.store_name || ""}
+              Halo, Juragan! 👋
             </h2>
             <p className="mt-1 text-sm text-muted-foreground">
-              Berikut ringkasan kinerja penjualan dan status inventaris warung
-              Anda hari ini.
+              Berikut ringkasan aktivitas warung Anda hari ini.
             </p>
           </div>
         </div>
 
         {/* 4 Metric Cards Grid */}
-        <div className="grid grid-cols-2 gap-5 md:grid-cols-2 xl:grid-cols-4">
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-2 xl:grid-cols-4">
           {/* Card 1: Penjualan Hari Ini */}
-          <div className="bg-card relative min-w-0 overflow-hidden rounded-xl border border-border p-3 shadow-xs sm:p-6">
-            <div className="flex items-center justify-between">
-              <span className="whitespace-nowrap text-[10px] font-bold tracking-tight text-muted-foreground uppercase sm:text-xs sm:tracking-wider">
-                Penjualan Hari Ini
-              </span>
-              <div className="flex size-7 items-center justify-center rounded-lg bg-primary/10 text-primary sm:size-9">
-                <LuTrendingUp className="size-4 sm:size-5" />
+          <div className="bg-card bg-primary-foreground dark:bg-background relative min-w-0 overflow-hidden rounded-2xl border border-border p-4 shadow-xs transition-shadow hover:shadow-md sm:p-5">
+            <div className="flex items-center gap-3">
+              <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-emerald-500 text-white">
+                <LuTrendingUp className="size-5" />
               </div>
-            </div>
-            <div className="mt-4">
-              <div className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
-                {formatRupiah(stats.todaySales)}
-              </div>
-              <p className="mt-2 text-xs font-medium text-emerald-600 dark:text-emerald-400">
-                +{stats.salesGrowthPercent}%{" "}
-                <span className="text-muted-foreground">
-                  ({formatCompactRupiah(stats.yesterdaySales)} kemarin)
+              <div className="min-w-0">
+                <span className="block truncate text-[10px] font-bold tracking-wide text-muted-foreground uppercase sm:text-xs">
+                  Penjualan Hari Ini
                 </span>
-              </p>
+                <div className="mt-1 truncate text-xl font-bold tracking-tight text-foreground sm:text-2xl">
+                  {formatRupiah(stats.todaySales)}
+                </div>
+                <p className="mt-1 flex items-center gap-1 truncate text-[11px] font-medium text-emerald-600 dark:text-emerald-600 sm:text-xs">
+                  {stats.salesGrowthPercent >= 0 ? <LuTrendingUp className="size-3.5 shrink-0" /> : <LuTrendingDown className="size-3.5 shrink-0" />}
+                  <span>{Math.abs(stats.salesGrowthPercent)}%</span>{" "}
+                  <span className="font-normal text-emerald-600 dark:text-emerald-600">dari kemarin</span>
+                </p>
+              </div>
             </div>
           </div>
 
           {/* Card 2: Jumlah Transaksi */}
-          <div className="bg-card relative min-w-0 overflow-hidden rounded-xl border border-border p-3 shadow-xs sm:p-6">
-            <div className="flex items-center justify-between">
-              <span className="whitespace-nowrap text-[10px] font-bold tracking-tight text-muted-foreground uppercase sm:text-xs sm:tracking-wider">
-                Jumlah Transaksi
-              </span>
-              <div className="flex size-7 items-center justify-center rounded-lg bg-primary/10 text-primary sm:size-9">
-                <LuBanknote className="size-4 sm:size-5" />
+          <div className="bg-card bg-primary-foreground dark:bg-background relative min-w-0 overflow-hidden rounded-2xl border border-border p-4 shadow-xs transition-shadow hover:shadow-md sm:p-5">
+            <div className="flex items-center gap-3">
+              <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-blue-500 text-white">
+                <LuBanknote className="size-5" />
               </div>
-            </div>
-            <div className="mt-4">
-              <div className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
-                {stats.todayTransactions} Transaksi
+              <div className="min-w-0">
+                <span className="block truncate text-[10px] font-bold tracking-wide text-muted-foreground uppercase sm:text-xs">Jumlah Transaksi</span>
+                <div className="mt-1 truncate text-xl font-bold tracking-tight text-foreground sm:text-2xl">{stats.todayTransactions} Transaksi</div>
+                <p className="mt-1 flex items-center gap-1 truncate text-[11px] font-medium text-emerald-600 dark:text-emerald-600 sm:text-xs">
+                  {stats.transactionGrowthPercent >= 0 ? <LuTrendingUp className="size-3.5 shrink-0" /> : <LuTrendingDown className="size-3.5 shrink-0" />}
+                  <span>{Math.abs(stats.transactionGrowthPercent)}%</span>{" "}
+                  <span className="font-normal text-emerald-600 dark:text-emerald-600">dari kemarin</span>
+                </p>
               </div>
-              <p className="mt-2 text-xs font-medium text-emerald-600 dark:text-emerald-400">
-                +{stats.transactionGrowthPercent}%{" "}
-                <span className="text-muted-foreground">
-                  dari kemarin ({stats.yesterdayTransactions})
-                </span>
-              </p>
             </div>
           </div>
 
           {/* Card 3: Total Produk */}
-          <div className="bg-card relative min-w-0 overflow-hidden rounded-xl border border-border p-3 shadow-xs sm:p-6">
-            <div className="flex items-center justify-between">
-              <span className="whitespace-nowrap text-[10px] font-bold tracking-tight text-muted-foreground uppercase sm:text-xs sm:tracking-wider">
-                Total Produk
-              </span>
-              <div className="flex size-7 items-center justify-center rounded-lg bg-primary/10 text-primary sm:size-9">
-                <LuPackage className="size-4 sm:size-5" />
+          <div className="bg-card bg-primary-foreground dark:bg-background relative min-w-0 overflow-hidden rounded-2xl border border-border p-4 shadow-xs transition-shadow hover:shadow-md sm:p-5">
+            <div className="flex items-center gap-3">
+              <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-violet-500 text-white">
+                <LuPackage className="size-5" />
               </div>
-            </div>
-            <div className="mt-4">
-              <div className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
-                {stats.totalProducts} Produk
+              <div className="min-w-0">
+                <span className="block truncate text-[10px] font-bold tracking-wide text-muted-foreground uppercase sm:text-xs">Total Produk</span>
+                <div className="mt-1 truncate text-xl font-bold tracking-tight text-foreground sm:text-2xl">{stats.totalProducts} Produk</div>
+                <p className="mt-1 truncate text-[11px] text-muted-foreground sm:text-xs">Terdaftar di inventaris</p>
               </div>
-              <p className="mt-2 text-xs font-medium text-muted-foreground">
-                Produk terdaftar di inventaris
-              </p>
             </div>
           </div>
 
           {/* Card 4: Stok Menipis */}
-          <div className="bg-card relative min-w-0 overflow-hidden rounded-xl border border-border p-3 shadow-xs sm:p-6">
-            <div>
-              <div className="flex items-center justify-between">
-                <span className="whitespace-nowrap text-[10px] font-bold tracking-tight text-muted-foreground uppercase sm:text-xs sm:tracking-wider">
-                  Stok Menipis
-                </span>
-                <div className="flex size-7 items-center justify-center rounded-lg bg-primary/10 text-primary sm:size-9">
-                  <LuTriangleAlert className="size-4 sm:size-5" />
+          <div className="bg-card bg-primary-foreground dark:bg-background relative min-w-0 overflow-hidden rounded-2xl border border-border p-4 shadow-xs transition-shadow hover:shadow-md sm:p-5">
+            <div className="flex items-center gap-3">
+              <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-amber-500 text-white">
+                <LuTriangleAlert className="size-5" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <span className="block truncate text-[10px] font-bold tracking-wide text-muted-foreground uppercase sm:text-xs">Stok Menipis</span>
+                <div className="mt-1 truncate text-xl font-bold tracking-tight text-foreground sm:text-2xl">{stats.lowStockCount} Produk</div>
+                <div className="mt-1 flex items-center justify-between gap-2">
+                  <Link href="/stok" className="inline-flex shrink-0 items-center gap-1 text-xs font-semibold text-primary hover:text-foreground">Lihat Detail <LuArrowRight className="size-3.5" /></Link>
                 </div>
               </div>
-              <div className="mt-4">
-                <div className="text-2xl font-bold tracking-tight text-destructive sm:text-3xl">
-                  {stats.lowStockCount} Produk
-                </div>
-                <p className="mt-2 text-xs font-medium text-muted-foreground">
-                  Perlu dicek & restock
-                </p>
-              </div>
-            </div>
-            <div className="mt-4 flex justify-end">
-              <Link
-                href="/stok"
-                className="inline-flex items-center gap-1 text-xs font-semibold text-blue-600 transition-colors hover:text-foreground dark:text-blue-400"
-              >
-                <span>Kelola</span>
-                <LuArrowRight className="size-3.5" />
-              </Link>
             </div>
           </div>
         </div>
@@ -218,30 +197,35 @@ export function DashboardView({ stats }: DashboardViewProps) {
         {/* Second Row: Chart & Peringatan Stok (Sesuai Gambar) */}
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
           {/* 7-Day Sales Trend Line Chart (2/3 width) */}
-          <div className="bg-card rounded-2xl border border-border/80 p-6 shadow-xs lg:col-span-2">
-            <div className="flex flex-col justify-between gap-2 sm:flex-row sm:items-center">
-              <div>
-                <h3 className="text-base font-bold text-foreground">
-                  Grafik Penjualan (7 Hari Terakhir)
-                </h3>
-                <p className="text-xs text-muted-foreground">
-                  Tren pendapatan harian dari transaksi lunas
-                </p>
+          <div className="bg-card bg-primary-foreground dark:bg-background rounded-2xl border border-border/80 p-6 shadow-xs lg:col-span-2">
+              <div className="flex flex-col justify-between gap-2 sm:flex-row sm:items-center">
+                <div>
+                  <h3 className="text-base font-bold text-foreground">
+                    Tren Penjualan 7 Hari Terakhir
+                  </h3>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className={isTrendUp
+                    ? "inline-flex items-center gap-1 rounded-full bg-emerald-600 px-2.5 py-1 text-xs font-semibold text-primary-foreground dark:text-primary-foreground"
+                    : "inline-flex items-center gap-1 rounded-full bg-red-500/10 px-2.5 py-1 text-xs font-semibold text-red-600 dark:text-red-600"}>
+                    {isTrendUp ? <LuTrendingUp className="size-3.5" /> : <LuTrendingDown className="size-3.5" />}
+                    <span>{isTrendUp ? "Naik" : "Turun"} {Math.abs(trendPercent)}%</span>
+                  </div>
+                  <Link
+                    href="/laporan"
+                    className="inline-flex items-center gap-1 text-xs font-semibold text-primary transition-colors hover:text-foreground"
+                  >
+                    <span>Lihat Laporan Lengkap</span>
+                    <LuArrowRight className="size-3.5" />
+                  </Link>
+                </div>
               </div>
-              <Link
-                href="/laporan"
-                className="inline-flex items-center gap-1 text-xs font-semibold text-primary transition-colors hover:text-foreground"
-              >
-                <span>Lihat Laporan Lengkap</span>
-                <LuArrowRight className="size-3.5" />
-              </Link>
-            </div>
 
             {/* SVG Chart */}
             <div className="scrollbar-thin mt-6 w-full overflow-x-auto pb-5">
-              <div className="relative min-w-[500px]">
+              <div className="relative min-w-125">
                 {/* Y-axis guidelines */}
-                <div className="pointer-events-none absolute inset-x-0 top-0 flex h-[180px] flex-col justify-between pl-2 text-[11px] text-muted-foreground">
+                <div className="pointer-events-none absolute inset-x-0 top-0 flex h-45 flex-col justify-between pl-2 text-[11px] text-muted-foreground">
                   <div className="flex items-center gap-2 border-b border-border/40 pb-1">
                     <span className="w-12">1.5 jt</span>
                   </div>
@@ -338,11 +322,11 @@ export function DashboardView({ stats }: DashboardViewProps) {
           </div>
 
           {/* Section Peringatan Stok (1/3 width - Sesuai Gambar) */}
-          <div className="bg-card flex flex-col justify-between rounded-2xl border border-border/80 p-6 shadow-xs">
+          <div className="bg-card bg-primary-foreground dark:bg-background flex flex-col justify-between rounded-2xl border border-border/80 p-6 shadow-xs">
             <div>
               <div className="flex items-center justify-between border-b border-border/60 pb-3">
                 <div className="flex items-center gap-2">
-                  <LuTriangleAlert className="size-4 text-red-500" />
+                  <LuTriangleAlert className="size-4 text-red-600" />
                   <h3 className="text-sm font-bold text-foreground">
                     Peringatan Stok
                   </h3>
@@ -395,7 +379,7 @@ export function DashboardView({ stats }: DashboardViewProps) {
         </div>
 
         {/* Row 3: Transaksi Terakhir (Full Width - Sesuai Gambar) */}
-        <div className="bg-card overflow-hidden rounded-2xl border border-border/80 shadow-xs">
+        <div className="bg-card bg-primary-foreground dark:bg-background overflow-hidden rounded-2xl border border-border/80 shadow-xs">
           <div className="flex flex-col gap-2 border-b border-border/80 px-6 py-4.5 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h3 className="text-base font-bold text-foreground">
@@ -416,8 +400,8 @@ export function DashboardView({ stats }: DashboardViewProps) {
           </div>
 
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[760px] text-left text-xs">
-              <thead className="border-b border-border/80 bg-muted/20 text-xs font-semibold text-muted-foreground">
+            <table className="w-full min-w-190 text-left text-xs">
+              <thead className="border-b border-border/80 text-xs font-semibold text-muted-foreground">
                 <tr>
                   <th className="py-3.5 pl-6 pr-4">No. Invoice</th>
                   <th className="px-4 py-3.5">Waktu</th>

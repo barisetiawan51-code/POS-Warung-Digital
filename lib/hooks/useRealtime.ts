@@ -182,15 +182,26 @@ export function useStockMovements() {
   return { data, loading };
 }
 
+const SETTINGS_CACHE_TTL = 30_000;
+let settingsCache: { data: StoreSettings; timestamp: number } | null = null;
+
 export function useStoreSettings() {
-  const [data, setData] = useState<StoreSettings | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [data, setData] = useState<StoreSettings | null>(settingsCache?.data ?? null);
+  const [loading, setLoading] = useState(!settingsCache);
 
   const fetch = useCallback(async () => {
+    if (settingsCache && Date.now() - settingsCache.timestamp < SETTINGS_CACHE_TTL) {
+      setData(settingsCache.data);
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     try {
       const settings = await fetchStoreSettingsSupabase();
-      if (settings) setData(settings);
+      if (settings) {
+        settingsCache = { data: settings, timestamp: Date.now() };
+        setData(settings);
+      }
     } catch (error) {
       console.error("Gagal memuat pengaturan Supabase:", error);
     } finally {
@@ -201,13 +212,16 @@ export function useStoreSettings() {
   useEffect(() => {
     void Promise.resolve().then(fetch);
 
-    const off = onSyncEvent("store_settings", () => void fetch());
+    const off = onSyncEvent("store_settings", () => {
+      settingsCache = null;
+      void fetch();
+    });
     return off ? off : undefined;
   }, [fetch]);
 
-  // Realtime subscription for store settings changes
   useEffect(() => {
     const cleanup = subscribeToStoreSettings((settings) => {
+      settingsCache = { data: settings, timestamp: Date.now() };
       setData(settings);
       void fetch();
     });

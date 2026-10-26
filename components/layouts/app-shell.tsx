@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
@@ -16,8 +17,7 @@ import {
   LuUser,
   LuMenu,
   LuX,
-  LuShoppingCart,
-  LuShoppingBasket
+  LuShoppingBasket,
 } from "react-icons/lu";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { site } from "@/content/site";
@@ -33,15 +33,20 @@ interface AppShellProps {
 
 export function AppShell({
   children,
-  pageTitle = "Dashboard Ringkasan",
+  pageTitle = "Dashboard",
   breadcrumb = "Warung / Dashboard",
 }: AppShellProps) {
   const pathname = usePathname();
   const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
   const { data: settings } = useDatabaseStoreSettings();
   const storeName = settings?.store_name || site.name;
   const ownerName = settings?.owner_name || site.ownerName;
+  const profileImageUrl = settings?.profile_image_url || "";
+
+  useEffect(() => setIsMounted(true), []);
 
 
   const navItems = [
@@ -77,18 +82,18 @@ export function AppShell({
       icon: LuReceipt,
     },
     {
-      label: "Laporan Penjualan",
+      label: "Laporan",
       href: "/laporan",
       icon: LuChartColumn,
     },
     {
-      label: "Pengaturan Warung",
+      label: "Pengaturan",
       href: "/pengaturan",
       icon: LuSettings,
     },
   ];
 
-  const primaryNavItems = navItems.filter((item) => item.href !== "/pengaturan");
+  const primaryNavItems = navItems;
 
   const handleLogout = async () => {
     // Clear demo cookie
@@ -106,21 +111,23 @@ export function AppShell({
     router.push("/login");
   };
 
+  const requestLogout = () => setLogoutConfirmOpen(true);
+
   return (
-      <div className="flex min-h-screen min-w-0 bg-background text-foreground">
-        {/* Desktop Sidebar (Fixed Left) */}
-        <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col justify-between border-r border-sidebar-border bg-sidebar text-sidebar-foreground lg:flex">
+    <div className="flex min-h-screen min-w-0 bg-background text-foreground">
+      {/* Desktop Sidebar (Fixed Left) */}
+      <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col justify-between border-r border-sidebar-border bg-sidebar text-sidebar-foreground lg:flex">
         <div>
           {/* Brand Header */}
           <div className="flex items-center gap-3 border-b border-sidebar-border/40 px-6 py-6">
-            <div className="flex size-10 items-center justify-center rounded-xl border border-primary/40 bg-primary/20 text-white shadow-sm">
-              <LuShoppingBasket className="size-6 text-white" />
+            <div className="flex size-10 items-center justify-center rounded-xl border border-primary/40 bg-primary/20 text-primary-foreground shadow-sm">
+              <LuShoppingBasket className="size-6 text-primary-foreground" />
             </div>
             <div>
-              <h1 className="text-lg leading-none font-bold tracking-tight text-white">
-                {storeName}
+              <h1 className="text-lg leading-none font-bold tracking-tight text-primary-foreground">
+                GoletAja
               </h1>
-              <p className="mt-1 text-xs text-sidebar-muted">
+              <p className="mt-1 text-xs text-primary-foreground">
                 Kasir Digital & Warung
               </p>
             </div>
@@ -140,10 +147,10 @@ export function AppShell({
                   key={item.href}
                   href={item.href}
                   className={cn(
-                    "group flex items-center justify-between rounded-lg px-3.5 py-2.5 text-sm font-medium transition-colors",
+                    "group flex items-center justify-between rounded-lg px-3.5 py-2.5 text-sm transition-colors",
                     isActive
-                      ? "bg-primary text-white shadow-sm"
-                      : "text-sidebar-muted hover:bg-white/10 hover:text-white",
+                      ? "bg-primary text-primary-foreground shadow-sm"
+                      : "text-primary-foreground hover:bg-white/10 hover:text-primary-foreground",
                   )}
                 >
                   <div className="flex items-center gap-3">
@@ -157,25 +164,19 @@ export function AppShell({
         </div>
 
         {/* Sidebar Footer */}
-        <div className="space-y-1.5 border-t border-sidebar-border/40 p-4">
-          <Link
-            href="/pengaturan"
-            className={cn(
-              "flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
-              pathname.startsWith("/pengaturan")
-                ? "bg-primary font-medium text-white shadow-sm"
-                : "text-sidebar-muted hover:bg-white/10 hover:text-white",
-            )}
-          >
-            <LuSettings className="size-4 shrink-0" />
-            <span>Pengaturan Warung</span>
-          </Link>
+        <div className="space-y-2 border-t border-white/10 p-4">
+          <ThemeToggle
+            labels={site.theme}
+            showLabel
+            className="text-blue-100 hover:bg-white/10 hover:text-white"
+          />
           <button
-            onClick={handleLogout}
-            className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-sidebar-muted transition-colors hover:bg-white/10 hover:text-white"
+            onClick={requestLogout}
+            className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-blue-100 transition-colors hover:bg-white/10 hover:text-white"
+            aria-label="Logout"
           >
             <LuLogOut className="size-4 shrink-0" />
-            <span>Keluar (Logout)</span>
+            <span>Logout</span>
           </button>
         </div>
       </aside>
@@ -191,28 +192,28 @@ export function AppShell({
       {/* Mobile Sidebar Drawer */}
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-50 flex w-72 flex-col justify-between bg-background border-r border-sidebar-border bg-sidebar text-sidebar-foreground transition-transform duration-200 lg:hidden",
+          "fixed inset-y-0 left-0 z-50 flex w-72 flex-col justify-between border-r border-[#173d6b] bg-[#0d2b52] text-white transition-transform duration-200 lg:hidden",
           mobileMenuOpen ? "translate-x-0" : "-translate-x-full",
         )}
       >
         <div>
           <div className="flex items-center justify-between border-b border-sidebar-border/40 px-6 py-5">
             <div className="flex items-center gap-3">
-              <div className="flex size-9 items-center justify-center rounded-xl border border-primary/40 bg-primary/20 text-white">
-                <LuShoppingBasket className="size-6 text-white" />
+              <div className="flex size-9 items-center justify-center rounded-xl border border-primary/40 bg-primary/20 text-primary-foreground">
+                <LuShoppingBasket className="size-6 text-primary-foreground" />
               </div>
               <div>
-                <h2 className="text-base leading-none font-bold text-white">
+                <h2 className="text-base leading-none font-bold text-primary-foreground">
                   {storeName}
                 </h2>
-                <p className="mt-1 text-[11px] text-sidebar-muted">
+                <p className="mt-1 text-[11px] text-primary-foreground">
                   Kasir Digital & Warung
                 </p>
               </div>
             </div>
             <button
               onClick={() => setMobileMenuOpen(false)}
-              className="rounded-lg p-1 text-sidebar-muted hover:text-white"
+              className="rounded-lg p-1 text-primary-foreground hover:text-primary-foreground"
             >
               <LuX className="size-5" />
             </button>
@@ -231,10 +232,10 @@ export function AppShell({
                   href={item.href}
                   onClick={() => setMobileMenuOpen(false)}
                   className={cn(
-                    "flex items-center justify-between rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
+                    "flex items-center justify-between rounded-lg px-3 py-2.5 text-sm transition-colors",
                     isActive
-                      ? "bg-primary text-white"
-                      : "text-sidebar-muted hover:bg-white/10 hover:text-white",
+                      ? "bg-primary text-primary-foreground"
+                      : "text-primary-foreground hover:bg-white/10 hover:text-primary-foreground",
                   )}
                 >
                   <div className="flex items-center gap-3">
@@ -247,26 +248,15 @@ export function AppShell({
           </nav>
         </div>
 
-        <div className="space-y-1.5 border-t border-sidebar-border/40 p-4">
-          <Link
-            href="/pengaturan"
-            onClick={() => setMobileMenuOpen(false)}
-            className={cn(
-              "flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
-              pathname.startsWith("/pengaturan")
-                ? "bg-primary font-medium text-white shadow-sm"
-                : "text-sidebar-muted hover:bg-white/10 hover:text-white",
-            )}
-          >
-            <LuSettings className="size-4 shrink-0" />
-            <span>Pengaturan Warung</span>
-          </Link>
+        <div className="space-y-2 border-t border-white/10 p-4">
+          <ThemeToggle labels={site.theme} showLabel className="text-blue-100 hover:bg-white/10 hover:text-white" />
           <button
-            onClick={handleLogout}
-            className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-sidebar-muted hover:bg-white/10 hover:text-white"
+            onClick={requestLogout}
+            className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-blue-100 transition-colors hover:bg-white/10 hover:text-white"
+            aria-label="Logout"
           >
             <LuLogOut className="size-4 shrink-0" />
-            <span>Keluar (Logout)</span>
+            <span>Logout</span>
           </button>
         </div>
       </aside>
@@ -289,7 +279,7 @@ export function AppShell({
               key={item.href}
               href={item.href}
               className={cn(
-                "relative flex min-h-16 flex-col items-center justify-center gap-1 text-[11px] font-medium transition-colors",
+                "relative flex min-h-16 flex-col items-center justify-center gap-1 text-[11px] transition-colors",
                 item.featured && "-mt-4 min-h-20",
                 isActive ? "text-primary" : "text-muted-foreground hover:text-foreground",
               )}
@@ -307,7 +297,7 @@ export function AppShell({
         <button
           type="button"
           onClick={() => setMobileMenuOpen(true)}
-          className="flex min-h-16 flex-col items-center justify-center gap-1 text-[11px] font-medium text-muted-foreground transition-colors hover:text-foreground"
+          className="flex min-h-16 flex-col items-center justify-center gap-1 text-[11px] text-muted-foreground transition-colors hover:text-foreground"
           aria-label="Buka semua menu navigasi"
         >
           <LuMenu className="size-5" />
@@ -317,8 +307,7 @@ export function AppShell({
 
       {/* Main Content Area */}
       <div className="flex min-w-0 flex-1 flex-col lg:pl-64">
-        {/* Top Navigation Bar */}
-        <header className="bg-card/95 sticky top-0 z-20 flex min-h-16 items-center justify-between gap-3 border-b border-border px-3 py-3 bg-background sm:px-6">
+        <header className="sticky top-0 z-20 flex min-h-16 items-center justify-between gap-3 border-b border-border bg-background px-3 py-3 sm:px-6">
           <div className="flex min-w-0 items-center gap-2 sm:gap-3">
             <button
               onClick={() => setMobileMenuOpen(true)}
@@ -328,45 +317,86 @@ export function AppShell({
               <LuMenu className="size-5" />
             </button>
             <div className="min-w-0">
-              <h2 className="truncate text-base font-bold tracking-tight text-foreground sm:text-xl">
-                {pageTitle}
-              </h2>
-              <p className="hidden truncate text-xs text-muted-foreground sm:block">
-                {breadcrumb}
-              </p>
+              <h2 className="truncate text-base font-bold tracking-tight text-foreground sm:text-xl">{pageTitle}</h2>
+              <p className="hidden truncate text-xs text-muted-foreground sm:block">{breadcrumb}</p>
             </div>
           </div>
-
-          <div className="flex shrink-0 items-center gap-1.5 sm:gap-4">
-            <Link
-              href="/kasir"
-              className="inline-flex size-10 items-center justify-center rounded-full border border-primary/30 bg-primary text-xs font-semibold text-white transition-colors hover:bg-primary/90 sm:size-auto sm:gap-2 sm:rounded-lg sm:px-3.5 sm:py-2 sm:text-sm"
-            >
-              <LuStore className="size-4 shrink-0" />
-              <span className="hidden sm:inline">Buka Kasir</span>
-            </Link>
-
-            <div className="hidden items-center gap-2.5 border-l border-border pl-4 md:flex">
-              <div className="flex size-9 items-center justify-center rounded-full border border-primary/20 bg-primary/10 text-primary">
+          <div
+            className="flex shrink-0 items-center gap-2 rounded-xl p-1.5 text-left sm:gap-3 sm:p-2"
+            aria-label={`Profil ${ownerName}`}
+          >
+            <span className="flex size-9 items-center justify-center overflow-hidden rounded-full bg-primary/10 text-primary ring-1 ring-primary/20">
+              {isMounted && profileImageUrl ? (
+                <Image src={profileImageUrl} alt={`Foto profil ${ownerName}`} width={36} height={36} unoptimized={profileImageUrl.startsWith("data:")} className="size-full object-cover" />
+              ) : (
                 <LuUser className="size-4" />
-              </div>
-              <div className="text-left">
-                <p className="text-xs leading-none font-semibold text-foreground">
-                  {ownerName}
-                </p>
-                <p className="mt-0.5 text-[11px] text-muted-foreground">
-                  {storeName}
-                </p>
-              </div>
-            </div>
-
-            <ThemeToggle labels={site.theme} />
+              )}
+            </span>
+            <span className="hidden min-w-0 sm:block">
+              <span className="block max-w-32 truncate text-xs font-semibold text-foreground">{ownerName}</span>
+              <span className="block max-w-32 truncate text-[11px] text-muted-foreground">{storeName}</span>
+            </span>
+            <span className="size-4" aria-hidden="true" />
           </div>
         </header>
 
         {/* Page Content Viewport */}
         <main className="min-w-0 flex-1 overflow-x-hidden p-3 pb-24 sm:p-6 sm:pb-24 lg:p-8 lg:pb-8">{children}</main>
       </div>
+
+      {logoutConfirmOpen && (
+        <div
+          className="fixed inset-0 z-100 flex items-center justify-center bg-slate-950/45 p-4 backdrop-blur-sm"
+          role="presentation"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) setLogoutConfirmOpen(false);
+          }}
+        >
+          <div
+            className="w-full max-w-md rounded-2xl border border-border bg-card bg-white dark:bg-slate-900 p-6 text-center shadow-2xl sm:p-8"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="logout-dialog-title"
+            aria-describedby="logout-dialog-description"
+          >
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setLogoutConfirmOpen(false)}
+                className="absolute -top-2 -right-2 flex size-8 items-center justify-center rounded-full bg-muted text-muted-foreground transition-colors hover:bg-border hover:text-foreground"
+                aria-label="Tutup dialog logout"
+              >
+                <LuX className="size-4" />
+              </button>
+              <div className="mx-auto flex size-14 items-center justify-center rounded-2xl bg-destructive/10 text-destructive">
+                <LuLogOut className="size-7" />
+              </div>
+            </div>
+            <h2 id="logout-dialog-title" className="mt-6 text-xl font-bold text-foreground">
+              Keluar dari akun?
+            </h2>
+            <p id="logout-dialog-description" className="mx-auto mt-2 max-w-sm text-sm leading-6 text-muted-foreground">
+              Anda akan keluar dari sesi {storeName}. Pastikan semua pekerjaan sudah tersimpan.
+            </p>
+            <div className="mt-7 grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => setLogoutConfirmOpen(false)}
+                className="rounded-xl bg-muted px-4 py-3 text-sm font-semibold text-foreground transition-colors hover:bg-border focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="rounded-xl bg-destructive px-4 py-3 text-sm font-semibold text-white transition-colors hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+              >
+                Logout
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

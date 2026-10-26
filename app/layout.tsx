@@ -1,10 +1,16 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
+import { Inter } from "next/font/google";
 import { SkipLink } from "@/components/layouts/skip-link";
 import { ThemeScript } from "@/components/layouts/theme-script";
 import { fetchStoreSettingsServer } from "@/lib/data/settings-server";
 import { site } from "@/content/site";
 import "@/styles/globals.css";
+
+const inter = Inter({
+  subsets: ["latin"],
+  display: "swap",
+});
 
 export const dynamic = "force-dynamic";
 
@@ -34,7 +40,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="id" suppressHydrationWarning className="h-full antialiased">
-      <body className="flex min-h-full flex-col bg-background text-foreground">
+      <body className={`${inter.className} flex min-h-full flex-col bg-background text-foreground`}>
         <ThemeScript />
         <SkipLink label={site.skipLinkLabel} />
         <main id="main-content" className="flex flex-1 flex-col">

@@ -17,6 +17,7 @@ import {
   LuQrCode,
   LuCopy,
   LuCheck,
+  LuImageOff,
 } from "react-icons/lu";
 import type {
   Product,
@@ -261,7 +262,7 @@ export function CashierView() {
             </div>
 
             <div className="relative">
-              <div className="pointer-events-none absolute top-0 right-0 z-10 h-full w-8 bg-gradient-to-l from-card to-transparent" />
+              <div className="pointer-events-none absolute top-0 right-0 z-10 h-full w-8 bg-linear-to-l from-card to-transparent" />
               <div className="scrollbar-thin flex snap-x snap-mandatory gap-2 overflow-x-auto pb-2 pr-8 text-xs">
                 <button
                   onClick={() => setSelectedCategory("all")}
@@ -310,6 +311,9 @@ export function CashierView() {
                   )}
                 >
                   <div>
+                    <div className="relative mb-3 aspect-4/3 overflow-hidden rounded-lg bg-primary-foreground dark:bg-muted">
+                      {prod.images?.[0]?.public_url ? <Image src={prod.images[0].public_url} alt={prod.name} fill sizes="(max-width: 640px) 45vw, 220px" loading="eager" className="object-cover" /> : <div className="flex h-full items-center justify-center text-muted-foreground"><LuImageOff className="size-8" aria-label="Tidak ada gambar produk" /></div>}
+                    </div>
                     <div className="flex items-center justify-between text-[11px] text-muted-foreground">
                       <span>{prod.sku}</span>
                       <span
@@ -362,12 +366,12 @@ export function CashierView() {
 
         {/* Right Column: Sticky Cart & Payment Summary (5 cols on XL) */}
         <div className="space-y-4 xl:col-span-5">
-          <div className="bg-card sticky top-20 flex min-h-[520px] flex-col justify-between rounded-xl border border-border p-5 shadow-xs">
+          <div className="bg-card sticky top-20 flex min-h-130 flex-col justify-between rounded-xl border border-border p-5 shadow-xs">
             <div>
               {/* Cart Header */}
               <div className="flex items-center justify-between border-b border-border pb-3.5">
                 <div className="flex items-center gap-2">
-                  <div className="flex size-8 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+                  <div className="flex size-8 items-center justify-center rounded-md bg-primary/10 text-primary">
                     <LuShoppingCart className="size-4" />
                   </div>
                   <div>
@@ -391,7 +395,7 @@ export function CashierView() {
               </div>
 
               {/* Cart Items List */}
-              <div className="mt-3.5 max-h-[300px] space-y-2.5 overflow-y-auto pr-1">
+              <div className="mt-3.5 max-h-75 space-y-2.5 overflow-y-auto pr-1">
                 {cart.map((item) => (
                   <div
                     key={item.product.id}
@@ -664,7 +668,7 @@ export function CashierView() {
             {paymentMethod === "online" && (
               <div className="space-y-3 rounded-xl border border-border/80 bg-muted/20 p-3.5 text-center">
                 <div className="rounded-lg bg-background p-2.5 shadow-xs">
-                  <div className="mx-auto flex w-full max-w-[210px] flex-col items-center justify-center overflow-hidden rounded-lg border border-border bg-white p-2">
+                  <div className="mx-auto flex w-full max-w-52.5 flex-col items-center justify-center overflow-hidden rounded-lg border border-border bg-white p-2">
                     <Image
                       src={settings.qris_image_url || "/images/qris-warung.svg"}
                       alt={`Barcode QRIS ${settings.store_name || "Warung"}`}

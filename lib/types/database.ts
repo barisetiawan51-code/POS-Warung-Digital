@@ -14,6 +14,12 @@ export type Json =
 export interface Database {
   public: {
     Tables: {
+      product_images: {
+        Row: { id: string; owner_id: string; product_id: string; storage_path: string | null; public_url: string | null; alt_text: string | null; sort_order: number; is_primary: boolean; created_at: string; updated_at: string };
+        Insert: { id?: string; owner_id: string; product_id: string; storage_path?: string | null; public_url?: string | null; alt_text?: string | null; sort_order?: number; is_primary?: boolean; created_at?: string; updated_at?: string };
+        Update: { id?: string; owner_id?: string; product_id?: string; storage_path?: string | null; public_url?: string | null; alt_text?: string | null; sort_order?: number; is_primary?: boolean; updated_at?: string };
+        Relationships: [];
+      };
       profiles: {
         Row: {
           id: string;
@@ -22,6 +28,7 @@ export interface Database {
           role: string;
           phone: string | null;
           address: string | null;
+          profile_image_url: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -32,6 +39,7 @@ export interface Database {
           role?: string;
           phone?: string | null;
           address?: string | null;
+          profile_image_url?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -42,6 +50,7 @@ export interface Database {
           role?: string;
           phone?: string | null;
           address?: string | null;
+          profile_image_url?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -365,3 +374,4 @@ export interface Database {
     CompositeTypes: Record<string, never>;
   };
 }
+

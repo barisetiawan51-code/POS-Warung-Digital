@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import {
   LuStore,
@@ -11,12 +11,14 @@ import {
   LuQrCode,
   LuLock,
   LuMail,
+  LuUser,
   LuEye,
   LuEyeOff,
   LuKeyRound,
   LuUpload,
   LuRotateCcw,
   LuImage,
+  LuTrash2,
 } from "react-icons/lu";
 import type { StoreSettings } from "@/lib/types/pos";
 import { updateStoreSettings } from "@/lib/data/store";
@@ -32,12 +34,17 @@ interface SettingsViewProps {
 }
 
 export function SettingsView({ initialSettings }: SettingsViewProps) {
+  const [isMounted, setIsMounted] = useState(false);
   const [settings, setSettings] = useState<StoreSettings>(() => {
     const stored = getClientStoredSettings();
     return { ...stored, ...initialSettings };
   });
+
+  useEffect(() => setIsMounted(true), []);
+
   const [storeName, setStoreName] = useState(() => settings.store_name);
   const [ownerName, setOwnerName] = useState(() => settings.owner_name);
+  const [profileImageUrl, setProfileImageUrl] = useState(() => settings.profile_image_url || "");
   const [email, setEmail] = useState(() => settings.email || "owner@warungku.id");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -61,6 +68,42 @@ export function SettingsView({ initialSettings }: SettingsViewProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [success, setSuccess] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  const handleProfileImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      setError("Foto profil harus berupa file gambar.");
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      setError("Ukuran foto profil maksimal 2 MB.");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const image = new window.Image();
+      image.onload = () => {
+        const size = 256;
+        const scale = Math.min(size / image.naturalWidth, size / image.naturalHeight, 1);
+        const canvas = document.createElement("canvas");
+        canvas.width = Math.max(1, Math.round(image.naturalWidth * scale));
+        canvas.height = Math.max(1, Math.round(image.naturalHeight * scale));
+        const context = canvas.getContext("2d");
+        if (!context) {
+          setError("Foto profil tidak dapat diproses.");
+          return;
+        }
+        context.drawImage(image, 0, 0, canvas.width, canvas.height);
+        setProfileImageUrl(canvas.toDataURL("image/webp", 0.78));
+        setError(null);
+      };
+      image.onerror = () => setError("Foto profil tidak dapat dibaca.");
+      image.src = String(reader.result);
+    };
+    reader.readAsDataURL(file);
+  };
 
   const handleQrisFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -131,6 +174,7 @@ export function SettingsView({ initialSettings }: SettingsViewProps) {
       const updated = await updateStoreSettings({
         store_name: storeName.trim(),
         owner_name: ownerName.trim(),
+        profile_image_url: profileImageUrl.trim(),
         email: email.trim(),
         password: password.trim(),
         phone: phone.trim(),
@@ -189,6 +233,36 @@ export function SettingsView({ initialSettings }: SettingsViewProps) {
                   Perubahan nama toko dan nama pemilik akan otomatis langsung
                   terganti di seluruh tampilan sistem.
                 </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-4 rounded-xl border border-dashed border-border bg-muted/10 p-4">
+              <div className="flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary/10 text-primary ring-2 ring-primary/20">
+                {isMounted && profileImageUrl ? (
+                  <Image src={profileImageUrl} alt="Foto profil pemilik" width={64} height={64} unoptimized={profileImageUrl.startsWith("data:")} className="size-full object-cover" />
+                ) : (
+                  <LuUser className="size-7" />
+                )}
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-xs font-semibold text-foreground">Foto Profil Pemilik</p>
+                <p className="mt-0.5 text-[11px] text-muted-foreground">PNG, JPG, atau WebP. Maksimal 2 MB.</p>
+                <label className="mt-2 inline-flex cursor-pointer items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-[11px] font-semibold text-white hover:bg-primary/90">
+                  <LuUpload className="size-3.5" />
+                  <span>Pilih Foto</span>
+                  <input type="file" accept="image/png, image/jpeg, image/webp" onChange={handleProfileImageChange} className="hidden" />
+                </label>
+                {isMounted && profileImageUrl && (
+                  <button
+                    type="button"
+                    onClick={() => setProfileImageUrl("")}
+                    className="ml-2 inline-flex items-center gap-1.5 rounded-lg bg-destructive px-2.5 py-1.5 text-[11px] font-medium text-white transition-colors hover:bg-destructive/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+                    aria-label="Hapus foto profil"
+                  >
+                    <LuTrash2 className="size-3.5" aria-hidden="true" />
+                    <span>Hapus</span>
+                  </button>
+                )}
               </div>
             </div>
 

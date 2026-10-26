@@ -11,6 +11,7 @@ export type Profile = {
   role: UserRole;
   phone: string;
   address: string;
+  profile_image_url?: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -23,6 +24,19 @@ export type Category = {
   product_count?: number;
   created_at: string;
   updated_at?: string;
+};
+
+export type ProductImage = {
+  id: string;
+  owner_id: string;
+  product_id: string;
+  storage_path: string | null;
+  public_url: string | null;
+  alt_text: string | null;
+  sort_order: number;
+  is_primary: boolean;
+  created_at: string;
+  updated_at: string;
 };
 
 export type Product = {
@@ -40,6 +54,7 @@ export type Product = {
   is_active: boolean;
   created_at: string;
   updated_at: string;
+  images?: ProductImage[];
 };
 
 export type CartItem = {
@@ -129,6 +144,7 @@ export type StoreSettings = {
   is_online_payment_enabled: boolean;
   qris_image_url?: string;
   qris_nmid?: string;
+  profile_image_url?: string;
   email?: string;
   password?: string;
 };
@@ -188,3 +204,7 @@ export type DashboardStats = {
   }[];
   recentOrders?: Order[];
 };
+
+
+
+

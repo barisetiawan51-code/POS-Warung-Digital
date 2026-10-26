@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -9,10 +10,12 @@ import {
   LuCircleAlert,
   LuTrash2,
   LuX,
+  LuImagePlus,
 } from "react-icons/lu";
-import type { Product, Category } from "@/lib/types/pos";
+import type { Product, Category, ProductImage } from "@/lib/types/pos";
 import { deleteProductAction } from "@/lib/actions/product-actions";
 import { createProductAction, updateProductAction } from "@/lib/actions/product-actions";
+import { fetchProductImagesSupabase, uploadProductImageSupabase, deleteProductImageSupabase } from "@/lib/data/supabase-service";
 import { AppShell } from "@/components/layouts/app-shell";
 import { CustomSelect } from "@/components/ui/custom-select";
 import { useStoreSettings } from "@/lib/settings-client";
@@ -40,7 +43,76 @@ export function ProductForm({ product, categories }: ProductFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [images, setImages] = useState<ProductImage[]>(product?.images ?? []);
+  const [pendingImage, setPendingImage] = useState<File | null>(null);
+  const [pendingImageUrl, setPendingImageUrl] = useState<string | null>(null);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
 
+  useEffect(() => {
+    if (!product) return;
+    void fetchProductImagesSupabase(product.id)
+      .then(setImages)
+      .catch(() => setError("Gambar produk gagal dimuat."));
+  }, [product]);
+
+  useEffect(() => {
+    if (!pendingImage) {
+      setPendingImageUrl(null);
+      return;
+    }
+    const url = URL.createObjectURL(pendingImage);
+    setPendingImageUrl(url);
+    return () => URL.revokeObjectURL(url);
+  }, [pendingImage]);
+
+  const handleImageUpload = async (file: File) => {
+    if (!product) {
+      setPendingImage(file);
+      setError(null);
+      return;
+    }
+    if (images.length > 0) {
+      setError("Produk hanya dapat memiliki 1 gambar.");
+      return;
+    }
+    if (file.type !== "image/jpeg" && file.type !== "image/png") {
+      setError("Format gambar hanya boleh JPG atau PNG.");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setError("Ukuran gambar maksimal 5 MB.");
+      return;
+    }
+
+    setIsUploadingImage(true);
+    setError(null);
+    try {
+      const image = await uploadProductImageSupabase(product.id, file);
+      setImages((current) => [...current.map((item) => ({ ...item, is_primary: false })), image]);
+    } catch (uploadError: unknown) {
+      const errorData = uploadError as {
+        message?: string;
+        details?: string;
+        hint?: string;
+        code?: string;
+      };
+      const message = [errorData.message, errorData.details, errorData.hint, errorData.code ? `kode ${errorData.code}` : ""]
+        .filter(Boolean)
+        .join(" — ") || "Kesalahan tidak diketahui.";
+      setError(`Gagal mengunggah gambar: ${message}`);
+    } finally {
+      setIsUploadingImage(false);
+    }
+  };
+
+  const handleImageDelete = async (image: ProductImage) => {
+    try {
+      await deleteProductImageSupabase(image);
+      setImages((current) => current.filter((item) => item.id !== image.id));
+    } catch (deleteError) {
+      setError(deleteError instanceof Error ? deleteError.message : "Gagal menghapus gambar.");
+    }
+  };
   const handleDelete = async () => {
     if (!product) return;
     setIsDeleting(true);
@@ -115,6 +187,9 @@ export function ProductForm({ product, categories }: ProductFormProps) {
           setError(res.error || "Gagal membuat produk.");
           setIsSubmitting(false);
           return;
+        }
+        if (pendingImage && res.product) {
+          await uploadProductImageSupabase(res.product.id, pendingImage);
         }
       }
 
@@ -191,6 +266,27 @@ export function ProductForm({ product, categories }: ProductFormProps) {
               />
             </div>
 
+            <div className="rounded-xl border border-dashed border-border bg-muted/20 p-4">
+              <div className="mb-3 flex items-center justify-between">
+                <label className="text-xs font-semibold text-foreground">Gambar Produk</label>
+                {images.length === 0 && <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-white hover:bg-primary/90">
+                  <LuImagePlus className="size-4" />
+                  {isUploadingImage ? "Mengunggah..." : pendingImage ? "Gambar Dipilih" : "Unggah Gambar"}
+                  <input type="file" accept=".jpg,.jpeg,.png,image/jpeg,image/png" className="sr-only" disabled={isUploadingImage} onChange={(e) => { const file = e.target.files?.[0]; if (file) void handleImageUpload(file); e.currentTarget.value = ""; }} />
+                </label>}
+              </div>
+              {images.length > 0 ? <div>
+                <div className="grid grid-cols-3 gap-3">{images.map((image) => <div key={image.id} className="bg-primary-foreground relative aspect-square overflow-hidden rounded-md border border-border"><Image src={image.public_url || "/placeholder.svg"} alt={image.alt_text || name} fill sizes="120px" loading="eager" className="object-cover" /><button type="button" onClick={() => void handleImageDelete(image)} className="absolute top-1 right-1 rounded-full bg-destructive p-1 text-white" aria-label="Hapus gambar"><LuX className="size-3" /></button></div>)}</div>
+                <p className="mt-2 text-[11px] text-muted-foreground">Maksimal 1 gambar, ukuran maksimal 5 MB</p>
+              </div> : pendingImageUrl ? <div>
+                <div className="relative size-32 bg-primary-foreground overflow-hidden rounded-md border border-border"><Image src={pendingImageUrl} alt={pendingImage?.name || name} fill sizes="128px" loading="eager" className="object-cover p-2.5" /><button type="button" onClick={() => setPendingImage(null)} className="absolute top-1 right-1 rounded-full bg-destructive p-1 text-white" aria-label="Hapus gambar pilihan"><LuX className="size-3" /></button></div>
+                <p className="mt-2 text-[11px] text-muted-foreground">Maksimal 1 gambar, ukuran maksimal 5 MB</p>
+              </div> : <div>
+                <p className="text-xs text-muted-foreground">Belum ada gambar produk.</p>
+                <p className="mt-1 text-[11px] text-muted-foreground">Maksimal 1 gambar, ukuran maksimal 5 MB</p>
+              </div>}
+            </div>
+
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
               <div>
                 <label className="mb-1.5 block text-xs font-semibold text-foreground">
@@ -263,12 +359,15 @@ export function ProductForm({ product, categories }: ProductFormProps) {
                   {isEditing ? "Stok Saat Ini" : "Stok Awal"} *
                 </label>
                 <input
-                  type="number"
+                  type="text"
+                  inputMode="numeric"
                   required
-                  min="0"
-                  step="1"
+                  pattern="[0-9]*"
                   value={stock}
-                  onChange={(e) => setStock(Number(e.target.value))}
+                  onChange={(e) => {
+                    const value = e.target.value.replace(/\D/g, "").replace(/^0+(?=\d)/, "");
+                    setStock(value === "" ? 0 : Number(value));
+                  }}
                   className="w-full rounded-lg border border-border bg-background px-3 py-2 text-xs text-foreground focus:border-primary focus:outline-hidden"
                 />
               </div>
@@ -278,12 +377,15 @@ export function ProductForm({ product, categories }: ProductFormProps) {
                   Ambang Batas Minimum Stok *
                 </label>
                 <input
-                  type="number"
+                  type="text"
+                  inputMode="numeric"
                   required
-                  min="0"
-                  step="1"
+                  pattern="[0-9]*"
                   value={minimumStock}
-                  onChange={(e) => setMinimumStock(Number(e.target.value))}
+                  onChange={(e) => {
+                    const value = e.target.value.replace(/\D/g, "").replace(/^0+(?=\d)/, "");
+                    setMinimumStock(value === "" ? 0 : Number(value));
+                  }}
                   className="w-full rounded-lg border border-border bg-background px-3 py-2 text-xs text-foreground focus:border-primary focus:outline-hidden"
                 />
               </div>

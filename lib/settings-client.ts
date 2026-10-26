@@ -12,6 +12,7 @@ export const defaultSettings: StoreSettings = {
   id: "owner-1",
   store_name: site.storeName || "Warung Barokah Rezeki",
   owner_name: site.ownerName || "Bari Setiawan",
+  profile_image_url: "",
   phone: "0812-3456-7890",
   address: "Jl. Mawar No. 14, RT 03/05, Kebayoran, Jakarta",
   bank_name: "BCA",

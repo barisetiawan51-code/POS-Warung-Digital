@@ -17,6 +17,7 @@ import type {
   Payment,
   StockMovement,
   StoreSettings,
+  ProductImage,
 } from "@/lib/types/pos";
 
 interface ProductRow {
@@ -119,6 +120,7 @@ interface ProfileRow {
   owner_name?: string;
   phone?: string;
   address?: string;
+  profile_image_url?: string;
 }
 
 // -----------------------------------------------------------------------------
@@ -164,13 +166,14 @@ export async function fetchProductsSupabase(): Promise<Product[] | null> {
 
   try {
     const ownerId = await getActiveOwnerId();
-    const [{ data, error }, { data: categories }] = await Promise.all([
+    const [{ data, error }, { data: categories }, { data: images }] = await Promise.all([
       client
         .from("products")
         .select("id, owner_id, category_id, sku, name, unit, cost_price, selling_price, stock, minimum_stock, is_active, created_at, updated_at")
         .eq("owner_id", ownerId)
         .order("name", { ascending: true }),
       client.from("categories").select("id, name").eq("owner_id", ownerId),
+      client.from("product_images").select("*").eq("owner_id", ownerId).order("is_primary", { ascending: false }),
     ]);
 
     if (error || !data) return null;
@@ -178,6 +181,12 @@ export async function fetchProductsSupabase(): Promise<Product[] | null> {
       (categories ?? []).map((category) => [category.id, category.name]),
     );
     const rows = data as unknown as ProductRow[];
+    const imagesByProduct = new Map<string, ProductImage[]>();
+    for (const image of (images ?? []) as ProductImage[]) {
+      const list = imagesByProduct.get(image.product_id) ?? [];
+      list.push(image);
+      imagesByProduct.set(image.product_id, list);
+    }
     return rows.map((row) => ({
       id: row.id,
       owner_id: row.owner_id,
@@ -193,6 +202,7 @@ export async function fetchProductsSupabase(): Promise<Product[] | null> {
       is_active: row.is_active,
       created_at: row.created_at,
       updated_at: row.updated_at,
+      images: imagesByProduct.get(row.id) ?? [],
     }));
   } catch (error) {
     console.error("[PRODUCTS FETCH EXCEPTION]", error);
@@ -1050,7 +1060,7 @@ export async function fetchStoreSettingsSupabase(): Promise<StoreSettings | null
 
     const { data: profile, error: profileError } = await client
       .from("profiles")
-      .select("id, store_name, owner_name, phone, address")
+      .select("id, store_name, owner_name, phone, address, profile_image_url")
       .eq("id", ownerId)
       .maybeSingle();
     if (profileError) return null;
@@ -1065,7 +1075,7 @@ export async function fetchStoreSettingsSupabase(): Promise<StoreSettings | null
 
     const { data: ensuredProfile, error: ensuredProfileError } = await client
       .from("profiles")
-      .select("id, store_name, owner_name, phone, address")
+      .select("id, store_name, owner_name, phone, address, profile_image_url")
       .eq("id", ownerId)
       .single();
     if (ensuredProfileError || !ensuredProfile) return null;
@@ -1096,6 +1106,7 @@ export async function fetchStoreSettingsSupabase(): Promise<StoreSettings | null
       owner_name: prof?.owner_name ?? "",
       phone: prof?.phone ?? "",
       address: prof?.address ?? "",
+      profile_image_url: prof?.profile_image_url ?? "",
       bank_name: row.bank_name,
       bank_account_number: row.bank_account_number,
       bank_account_holder: row.bank_account_holder,
@@ -1148,12 +1159,14 @@ export async function updateStoreSettingsSupabase(
     if (payload.owner_name !== undefined) profileUpdate.owner_name = payload.owner_name;
     if (payload.phone !== undefined) profileUpdate.phone = payload.phone;
     if (payload.address !== undefined) profileUpdate.address = payload.address;
+    if (payload.profile_image_url !== undefined) profileUpdate.profile_image_url = payload.profile_image_url;
 
     const hasProfileChanges =
       payload.store_name !== undefined ||
       payload.owner_name !== undefined ||
       payload.phone !== undefined ||
-      payload.address !== undefined;
+      payload.address !== undefined ||
+      payload.profile_image_url !== undefined;
 
     if (hasProfileChanges) {
       const { error: profileUpdateError } = await client
@@ -1202,8 +1215,8 @@ export async function updateStoreSettingsSupabase(
  * Realtime subscription helper for any table.
  * On any INSERT/UPDATE/DELETE, re-fetches the table via the provided fetcher
  * and invokes `onChange` with freshly synced data, then dispatches a
- * window CustomEvent so the in-memory store (lib/data/store.ts) â€” and any
- * other tab/listener â€” refreshes its cache in real time.
+ * window CustomEvent so the in-memory store (lib/data/store.ts) ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â and any
+ * other tab/listener ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â refreshes its cache in real time.
  * Returns a cleanup function that removes the Realtime channel, or null when
  * Supabase is not configured.
  */
@@ -1266,7 +1279,7 @@ export function dispatchSyncEvent(table: string): void {
 }
 
 /**
- * Reacts to `warungku:sync:<table>` events â€” used by the in-memory store
+ * Reacts to `warungku:sync:<table>` events ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â used by the in-memory store
  * to invalidate its cache and the React hooks layer to re-fetch.
  * Returns an unsubscribe function.
  */
@@ -1381,3 +1394,51 @@ export function subscribeToStoreSettings(
     stopSettings?.();
   };
 }
+
+export async function fetchProductImagesSupabase(productId: string): Promise<ProductImage[]> {
+  const client = getClient();
+  if (!client) return [];
+  const { data, error } = await client.from("product_images").select("*").eq("product_id", productId).order("is_primary", { ascending: false }).order("sort_order");
+  if (error) throw error;
+  return (data ?? []) as ProductImage[];
+}
+
+export async function uploadProductImageSupabase(productId: string, file: File): Promise<ProductImage> {
+  const client = getClient();
+  if (!client) throw new Error("Supabase tidak tersedia.");
+  const ownerId = await getActiveOwnerId();
+  const extension = file.name.split(".").pop()?.toLowerCase() || "jpg";
+  const storagePath = `${ownerId}/${productId}/${crypto.randomUUID()}.${extension}`;
+  const { error: uploadError } = await client.storage.from("product-images").upload(storagePath, file, { contentType: file.type, upsert: false });
+  if (uploadError) throw uploadError;
+  const { data: urlData } = client.storage.from("product-images").getPublicUrl(storagePath);
+  const { error: demoteError } = await client
+    .from("product_images")
+    .update({ is_primary: false })
+    .eq("product_id", productId)
+    .eq("is_primary", true);
+  if (demoteError) throw demoteError;
+
+  const { data, error } = await client.from("product_images").insert({ owner_id: ownerId, product_id: productId, storage_path: storagePath, public_url: urlData.publicUrl, alt_text: file.name, is_primary: true }).select().single();
+  if (error) throw error;
+  return data as ProductImage;
+}
+
+export async function deleteProductImageSupabase(image: ProductImage): Promise<void> {
+  const client = getClient();
+  if (!client) throw new Error("Supabase tidak tersedia.");
+  if (image.storage_path) await client.storage.from("product-images").remove([image.storage_path]);
+  const { error } = await client.from("product_images").delete().eq("id", image.id);
+  if (error) throw error;
+}
+
+
+
+
+
+
+
+
+
+
+

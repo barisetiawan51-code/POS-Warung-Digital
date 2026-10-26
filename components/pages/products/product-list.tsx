@@ -12,7 +12,9 @@ import {
   LuTrash2,
   LuCircleAlert,
   LuCircleCheck,
+  LuImageOff
 } from "react-icons/lu";
+import Image from "next/image";
 import type { Product } from "@/lib/types/pos";
 import { useProducts, useCategories, useStoreSettings } from "@/lib/hooks/useRealtime";
 import { formatRupiah } from "@/lib/format";
@@ -156,6 +158,7 @@ export function ProductList() {
             <table className="w-full text-left text-xs">
               <thead className="whitespace-nowrap border-b border-border bg-muted/50 text-[11px] font-bold tracking-wider text-muted-foreground uppercase">
                 <tr>
+                  <th className="px-4 py-3.5">Gambar</th>
                   <th className="px-4 py-3.5">SKU</th>
                   <th className="px-4 py-3.5">Nama Produk</th>
                   <th className="px-4 py-3.5">Kategori</th>
@@ -213,6 +216,11 @@ export function ProductList() {
                         !prod.is_active && "bg-muted/10 opacity-60",
                       )}
                     >
+                      <td className="px-4 py-3">
+                        <div className="flex size-10 items-center justify-center overflow-hidden rounded-md bg-primary-foreground dark:bg-muted">
+                          {prod.images?.[0]?.public_url ? <Image src={prod.images[0].public_url} alt={prod.name} width={40} height={40} className="size-10 object-cover" /> : <LuImageOff className="size-4 text-muted-foreground" aria-label="Tidak ada gambar produk" />}
+                        </div>
+                      </td>
                       <td className="px-4 py-3 font-mono font-semibold text-foreground">
                         {prod.sku}
                       </td>
@@ -296,7 +304,7 @@ export function ProductList() {
       {/* Delete Confirmation Modal */}
       {deletingProduct && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4">
-          <div className="bg-card bg-white dark:bg-slate-900 w-full max-w-[480px] rounded-2xl border border-border/80 shadow-2xl overflow-hidden">
+          <div className="bg-card bg-white dark:bg-slate-900 w-full max-w-120 rounded-2xl border border-border/80 shadow-2xl overflow-hidden">
             {/* Header Modal */}
             <div className="flex items-center justify-between border-b border-border/80 px-6 py-4">
               <div className="flex items-center gap-2.5">
